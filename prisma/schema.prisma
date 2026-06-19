@@ -1,0 +1,82 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  nama      String
+  email     String   @unique
+  password  String
+  noRumah   String
+  role      Role     @default(WARGA)
+  createdAt DateTime @default(now())
+
+  tagihan   Tagihan[]
+  surat     Surat[]
+}
+
+model Tagihan {
+  id        Int      @id @default(autoincrement())
+  bulan     String
+  tahun     Int
+  jumlah    Int
+  status    StatusTagihan @default(BELUM_BAYAR)
+  createdAt DateTime @default(now())
+
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+
+  pembayaran Pembayaran?
+}
+
+model Pembayaran {
+  id          Int      @id @default(autoincrement())
+  jumlah      Int
+  metodeBayar String
+  status      StatusPembayaran @default(PENDING)
+  midtransId  String?
+  createdAt   DateTime @default(now())
+
+  tagihanId   Int      @unique
+  tagihan     Tagihan  @relation(fields: [tagihanId], references: [id])
+}
+
+model Surat {
+  id        Int      @id @default(autoincrement())
+  jenisSurat String
+  keterangan String?
+  status    StatusSurat @default(PENDING)
+  filePdf   String?
+  createdAt DateTime @default(now())
+
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+enum Role {
+  WARGA
+  ADMIN
+}
+
+enum StatusTagihan {
+  BELUM_BAYAR
+  SUDAH_BAYAR
+}
+
+enum StatusPembayaran {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+enum StatusSurat {
+  PENDING
+  DIPROSES
+  SELESAI
+  DITOLAK
+}
