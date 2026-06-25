@@ -1,0 +1,46 @@
+import { NextResponse } from 'next/server'
+import { prisma } from '@/lib/prisma'
+
+export async function GET() {
+  try {
+    const pengumuman = await prisma.pengumuman.findMany({
+      orderBy: { createdAt: 'desc' },
+    })
+    return NextResponse.json({ pengumuman })
+  } catch (error) {
+    console.error(error)
+    return NextResponse.json({ pesan: 'Gagal mengambil pengumuman' }, { status: 500 })
+  }
+}
+
+export async function POST(request) {
+  try {
+    const body = await request.json()
+    const { judul, isi, penting } = body
+
+    if (!judul || !isi) {
+      return NextResponse.json({ pesan: 'Judul dan isi wajib diisi' }, { status: 400 })
+    }
+
+    const pengumumanBaru = await prisma.pengumuman.create({
+      data: { judul, isi, penting: penting || false },
+    })
+
+    return NextResponse.json({ pesan: 'Pengumuman dibuat', pengumuman: pengumumanBaru })
+  } catch (error) {
+    console.error(error)
+    return NextResponse.json({ pesan: 'Gagal membuat pengumuman' }, { status: 500 })
+  }
+}
+
+export async function DELETE(request) {
+  try {
+    const body = await request.json()
+    const { id } = body
+    await prisma.pengumuman.delete({ where: { id: parseInt(id) } })
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error(error)
+    return NextResponse.json({ pesan: 'Gagal menghapus pengumuman' }, { status: 500 })
+  }
+}

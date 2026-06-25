@@ -1,220 +1,290 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Link from 'next/link'
+import { useAuth } from '@/hooks/useAuth'
+import { useToast } from '@/components/Toast'
+import StatusBadge from '@/components/StatusBadge'
+import Modal from '@/components/Modal'
+import EmptyState from '@/components/EmptyState'
+import { SkeletonDashboard } from '@/components/Skeleton'
 
-export default function Admin() {
-  const [dataIuran, setDataIuran] = useState([
-    { id: 1, nama: 'Budi Santoso', blok: 'B17', bulan: 'Juni 2026', nominal: 50000, metode: 'Tunai', status: 'Pending' },
-    { id: 2, nama: 'Siti Rahma', blok: 'A05', bulan: 'Juni 2026', nominal: 50000, metode: 'QRIS Gateway', status: 'Lunas' },
-    { id: 3, nama: 'Irma Noviana', blok: 'C12', bulan: 'Juni 2026', nominal: 50000, metode: 'QRIS Gateway', status: 'Lunas' },
-    { id: 4, nama: 'Agus Setiawan', blok: 'B02', bulan: 'Mei 2026', nominal: 50000, metode: 'Tunai', status: 'Lunas' },
-    { id: 5, nama: 'Hendra Wijaya', blok: 'D08', bulan: 'Juni 2026', nominal: 50000, metode: 'QRIS Gateway', status: 'Pending' },
-  ])
+function statusTampilan(t) {
+  if (!t.pembayaran) return 'Belum Bayar'
+  if (t.pembayaran.status === 'PENDING') return 'Pending'
+  if (t.pembayaran.status === 'SUCCESS') return 'Lunas'
+  return 'Belum Bayar'
+}
 
-  const [pengeluaran, setPengeluaran] = useState([
-    { id: 1, keperluan: 'Bayar Insentif Satpam', nominal: 100000, sumber: 'Transfer' },
-    { id: 2, keperluan: 'Beli Sapu Jalanan', nominal: 20000, sumber: 'Cash' },
-  ])
-
+export default function AdminDashboard() {
+  const { user } = useAuth('ADMIN')
+  const toast = useToast()
+  const [tagihanList, setTagihanList] = useState([])
+  const [pengeluaran, setPengeluaran] = useState([])
+  const [loadingData, setLoadingData] = useState(true)
   const [inputKeperluan, setInputKeperluan] = useState('')
   const [inputNominal, setInputNominal] = useState('')
   const [sumberDana, setSumberDana] = useState('Cash')
+  const [confirmApprove, setConfirmApprove] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
-  const [totalSaldo, setTotalSaldo] = useState(0)
-  const [kasTunai, setKasTunai] = useState(0)
 
-  useEffect(() => {
-    const masukTotal = dataIuran.filter(d => d.status === 'Lunas').reduce((s, d) => s + d.nominal, 0)
-    const masukCash  = dataIuran.filter(d => d.status === 'Lunas' && d.metode === 'Tunai').reduce((s, d) => s + d.nominal, 0)
-    const keluarTotal = pengeluaran.reduce((s, d) => s + d.nominal, 0)
-    const keluarCash  = pengeluaran.filter(d => d.sumber === 'Cash').reduce((s, d) => s + d.nominal, 0)
-    setTotalSaldo(masukTotal - keluarTotal)
-    setKasTunai(masukCash - keluarCash)
-  }, [dataIuran, pengeluaran])
+  const ambilData = async () => {
+    try {
+      const [tRes, pRes] = await Promise.all([
+        fetch('/api/tagihan'),
+        fetch('/api/pengeluaran'),
+      ])
+      if (tRes.ok) { const d = await tRes.json(); setTagihanList(d.tagihan || []) }
+      if (pRes.ok) { const d = await pRes.json(); setPengeluaran(d.riwayatPengeluaran || []) }
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setLoadingData(false)
+    }
+  }
 
-  const handleSetujui = (id) =>
-    setDataIuran(prev => prev.map(d => d.id === id ? { ...d, status: 'Lunas' } : d))
+  useEffect(() => { if (user) ambilData() }, [user])
 
-  const handleTambah = (e) => {
+  const handleSetujui = async (pembayaranId) => {
+    setConfirmApprove(null)
+    try {
+      const res = await fetch('/api/pembayaran', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pembayaranId }),
+      })
+      if (res.ok) {
+        toast.success('Pembayaran disetujui!')
+        ambilData()
+      } else {
+        toast.error('Gagal menyetujui pembayaran')
+      }
+    } catch { toast.error('Gagal menyetujui') }
+  }
+
+  const handleTambahPengeluaran = async (e) => {
     e.preventDefault()
     if (!inputKeperluan || !inputNominal) return
-    setPengeluaran(prev => [...prev, { id: Date.now(), keperluan: inputKeperluan, nominal: parseInt(inputNominal), sumber: sumberDana }])
-    setInputKeperluan('')
-    setInputNominal('')
+    try {
+      const res = await fetch('/api/pengeluaran', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ keperluan: inputKeperluan, nominal: parseInt(inputNominal), sumber: sumberDana }),
+      })
+      if (res.ok) {
+        setInputKeperluan('')
+        setInputNominal('')
+        toast.success('Pengeluaran tercatat!')
+        ambilData()
+      }
+    } catch { toast.error('Gagal mencatat pengeluaran') }
   }
 
-  const handleHapus = (id) => setPengeluaran(prev => prev.filter(d => d.id !== id))
+  const handleHapusPengeluaran = async (id) => {
+    try {
+      const res = await fetch('/api/pengeluaran', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      })
+      if (res.ok) { toast.info('Pengeluaran dibatalkan'); ambilData() }
+    } catch { toast.error('Gagal membatalkan') }
+  }
 
-  const wargaTersaring = dataIuran.filter(w =>
-    w.nama.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    w.blok.toLowerCase().includes(searchQuery.toLowerCase())
+  if (!user || loadingData) return <SkeletonDashboard />
+
+  const tagihanLunas = tagihanList.filter(t => statusTampilan(t) === 'Lunas')
+  const masukTunai = tagihanLunas.filter(t => t.pembayaran?.metodeBayar === 'Tunai').reduce((s, t) => s + t.jumlah, 0)
+  const masukQris = tagihanLunas.filter(t => t.pembayaran?.metodeBayar === 'QRIS Gateway').reduce((s, t) => s + t.jumlah, 0)
+  const keluarTunai = pengeluaran.filter(p => p.sumber === 'Cash').reduce((s, p) => s + p.nominal, 0)
+  const keluarQris = pengeluaran.filter(p => p.sumber === 'Transfer').reduce((s, p) => s + p.nominal, 0)
+  const kasUangTunai = masukTunai - keluarTunai
+  const kasSaldoQris = masukQris - keluarQris
+  const totalSaldo = kasUangTunai + kasSaldoQris
+
+  const pendingList = tagihanList.filter(t => statusTampilan(t) === 'Pending')
+
+  const tagihanTersaring = tagihanList.filter(t =>
+    t.user.nama.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    t.user.noRumah.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
-  const inp = {
-    width: '100%', padding: '9px 13px', border: '.5px solid #e0ebe5',
-    borderRadius: '10px', fontSize: '13px', fontFamily: "'Inter', sans-serif",
-    color: '#18291f', background: '#f8f6f2', outline: 'none',
-    boxSizing: 'border-box',
-  }
-
   return (
-    <div style={{ backgroundColor: '#f0ede6', minHeight: '100vh', padding: '24px 16px 48px', fontFamily: "'Inter', sans-serif" }}>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=Inter:wght@400;500;600&display=swap');
-        @keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
-        .a0{animation:fadeUp .35s ease both}
-        .a1{animation:fadeUp .35s .07s ease both}
-        .a2{animation:fadeUp .35s .12s ease both}
-        .a3{animation:fadeUp .35s .17s ease both}
-        .a4{animation:fadeUp .35s .22s ease both}
-        .wcard{animation:fadeUp .3s ease both}
-        .inp:focus{border-color:#18291f !important;box-shadow:0 0 0 3px #18291f0d}
-        .btn-pill:hover{color:#18291f !important;border-color:#b0c8c3 !important}
-        .btn-submit:hover{background:#1a5c42 !important}
-        .btn-setujui:hover{background:#1a5c42 !important;transform:scale(1.03)}
-        .btn-setujui:active{transform:scale(.97)}
-        .btn-cancel:hover{color:#b83030 !important}
-        .wcard:hover{border-color:#d0e4dd !important}
-      `}</style>
+    <>
+      {/* Header */}
+      <div className="animate-fade-up" style={{ marginBottom: '24px' }}>
+        <p className="label-small" style={{ marginBottom: '4px' }}>Tirta Asri Residence</p>
+        <h1 className="section-title" style={{ fontSize: '26px' }}>Dashboard Pengurus</h1>
+        <p className="section-subtitle">
+          {new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+        </p>
+      </div>
 
-      <div style={{ width: '100%', maxWidth: '420px', margin: '0 auto' }}>
-
-        {/* Header */}
-        <div className="a0" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '22px' }}>
-          <div>
-            <p style={{ fontSize: '9px', fontWeight: 600, letterSpacing: '.15em', textTransform: 'uppercase', color: '#9ab5b0', margin: '0 0 4px' }}>
-              Tirta Asri Residence
-            </p>
-            <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: '23px', fontWeight: 600, color: '#18291f', lineHeight: 1.2, margin: 0 }}>
-              Dashboard Pengurus
-            </h1>
-            <p style={{ fontSize: '11px', color: '#8a9e98', margin: '3px 0 0' }}>Kelola kas dan iuran warga</p>
-          </div>
-          <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
-            <Link href="/riwayat" className="btn-pill" style={{ fontSize: '11px', fontWeight: 500, color: '#8a9e98', background: '#fff', border: '.5px solid #dde8e3', padding: '7px 13px', borderRadius: '20px', textDecoration: 'none', position: 'relative', transition: 'all .2s' }}>
-              Riwayat
-            </Link>
-            <Link href="/" className="btn-pill" style={{ fontSize: '11px', fontWeight: 500, color: '#8a9e98', background: '#fff', border: '.5px solid #dde8e3', padding: '7px 13px', borderRadius: '20px', textDecoration: 'none', transition: 'all .2s' }}>
-              Keluar
-            </Link>
-          </div>
+      {/* Stats Grid */}
+      <div className="animate-fade-up delay-1" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px', marginBottom: '20px' }}>
+        <div className="stat-card stat-card-dark">
+          <p className="stat-label" style={{ color: '#5a9e8a' }}><i className="ri-wallet-3-line" /> Total Saldo</p>
+          <p className="stat-value">Rp {totalSaldo.toLocaleString('id-ID')}</p>
+          <p className="stat-footnote" style={{ color: '#4a7a68' }}>Cash + QRIS</p>
         </div>
-
-        {/* Stats */}
-        <div className="a1" style={{ display: 'flex', gap: '10px', marginBottom: '12px' }}>
-          <div style={{ background: '#18291f', borderRadius: '18px', padding: '16px 18px', flex: 1, minWidth: 0 }}>
-            <p style={{ fontSize: '8.5px', fontWeight: 600, letterSpacing: '.12em', textTransform: 'uppercase', color: '#5a9e8a', margin: '0 0 6px' }}>Total Saldo</p>
-            <p style={{ fontFamily: "'Playfair Display', serif", fontSize: '18px', fontWeight: 600, color: '#f5f0e8', margin: '0 0 5px' }}>
-              Rp {totalSaldo.toLocaleString('id-ID')}
-            </p>
-            <p style={{ fontSize: '8.5px', color: '#4a7a68', margin: 0 }}>Cash + QRIS</p>
-          </div>
-          <div style={{ background: '#fff', border: '.5px solid #e0ebe5', borderRadius: '18px', padding: '16px 18px', flex: 1, minWidth: 0 }}>
-            <p style={{ fontSize: '8.5px', fontWeight: 600, letterSpacing: '.12em', textTransform: 'uppercase', color: '#9ab5b0', margin: '0 0 6px' }}>Kas Tunai</p>
-            <p style={{ fontFamily: "'Playfair Display', serif", fontSize: '18px', fontWeight: 600, color: '#18291f', margin: '0 0 5px' }}>
-              Rp {kasTunai.toLocaleString('id-ID')}
-            </p>
-            <p style={{ fontSize: '8.5px', color: '#b0c8c3', margin: 0 }}>Uang fisik</p>
-          </div>
+        <div className="stat-card stat-card-light">
+          <p className="stat-label"><i className="ri-money-dollar-circle-line" /> Kas Tunai</p>
+          <p className="stat-value">Rp {kasUangTunai.toLocaleString('id-ID')}</p>
+          <p className="stat-footnote">Uang fisik</p>
         </div>
+        <div className="stat-card stat-card-light">
+          <p className="stat-label"><i className="ri-qr-code-line" /> Saldo QRIS</p>
+          <p className="stat-value">Rp {kasSaldoQris.toLocaleString('id-ID')}</p>
+          <p className="stat-footnote">Rekening digital</p>
+        </div>
+      </div>
 
-        {/* Form Pengeluaran */}
-        <div className="a2" style={{ background: '#fff', border: '.5px solid #e0ebe5', borderRadius: '18px', overflow: 'hidden', marginBottom: '12px' }}>
-          <div style={{ padding: '14px 18px', borderBottom: '.5px solid #f0ede6' }}>
-            <p style={{ fontSize: '12.5px', fontWeight: 600, color: '#18291f', margin: 0 }}>Catat Pengeluaran</p>
-            <p style={{ fontSize: '10px', color: '#b0c8c3', margin: '2px 0 0' }}>Masukkan pengeluaran kas RT</p>
-          </div>
-          <div style={{ padding: '14px 18px' }}>
-            <form onSubmit={handleTambah} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+      {/* Pending Approvals */}
+      {pendingList.length > 0 && (
+        <div className="card animate-fade-up delay-2" style={{ marginBottom: '16px', borderColor: 'var(--color-warning)' }}>
+          <p style={{ fontSize: '15px', fontWeight: 600, color: 'var(--color-text)', margin: '0 0 12px' }}>
+            <i className="ri-time-line" style={{ color: 'var(--color-warning)', marginRight: '6px' }} />
+            Menunggu Persetujuan ({pendingList.length})
+          </p>
+          {pendingList.map(t => (
+            <div key={t.id} className="card-flat" style={{ marginBottom: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
               <div>
-                <p style={{ fontSize: '10.5px', fontWeight: 600, color: '#5a7a72', margin: '0 0 5px' }}>Keperluan</p>
-                <input className="inp" style={inp} type="text" placeholder="Contoh: Bayar insentif satpam" value={inputKeperluan} onChange={e => setInputKeperluan(e.target.value)} required />
+                <p style={{ fontSize: '14px', fontWeight: 600, color: 'var(--color-text)', margin: 0 }}>{t.user.nama}</p>
+                <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', margin: '2px 0 0' }}>
+                  Blok {t.user.noRumah} · {t.bulan} {t.tahun} · {t.pembayaran?.metodeBayar} · Rp {t.jumlah.toLocaleString('id-ID')}
+                </p>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                <div>
-                  <p style={{ fontSize: '10.5px', fontWeight: 600, color: '#5a7a72', margin: '0 0 5px' }}>Nominal (Rp)</p>
-                  <input className="inp" style={inp} type="number" placeholder="50000" value={inputNominal} onChange={e => setInputNominal(e.target.value)} required />
-                </div>
-                <div>
-                  <p style={{ fontSize: '10.5px', fontWeight: 600, color: '#5a7a72', margin: '0 0 5px' }}>Sumber Dana</p>
-                  <select className="inp" style={{ ...inp, background: '#f8f6f2' }} value={sumberDana} onChange={e => setSumberDana(e.target.value)}>
-                    <option value="Cash">Tunai / Cash</option>
-                    <option value="Transfer">QRIS / Transfer</option>
-                  </select>
-                </div>
-              </div>
-              <button type="submit" className="btn-submit" style={{ width: '100%', padding: '10px', background: '#18291f', color: '#f5f0e8', border: 'none', borderRadius: '10px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', marginTop: '4px', transition: 'background .2s' }}>
-                Tambah Pengeluaran
+              <button
+                onClick={() => setConfirmApprove(t)}
+                className="btn btn-primary btn-sm"
+              >
+                <i className="ri-check-line" /> Setujui
               </button>
-            </form>
-
-            {pengeluaran.length > 0 && (
-              <div style={{ borderTop: '.5px dashed #e8e4dc', marginTop: '14px', paddingTop: '10px' }}>
-                {pengeluaran.map(e => (
-                  <div key={e.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8f6f2', padding: '9px 12px', borderRadius: '10px', marginBottom: '6px' }}>
-                    <div>
-                      <p style={{ fontSize: '11.5px', fontWeight: 500, color: '#18291f', margin: 0 }}>{e.keperluan}</p>
-                      <p style={{ fontSize: '11px', fontWeight: 600, color: '#b83030', margin: '2px 0 0' }}>
-                        - Rp {e.nominal.toLocaleString('id-ID')}
-                        <span style={{ fontSize: '9px', fontWeight: 500, color: '#8a9e98', background: '#e8e4dc', padding: '1px 6px', borderRadius: '3px', marginLeft: '5px' }}>{e.sumber}</span>
-                      </p>
-                    </div>
-                    <button className="btn-cancel" onClick={() => handleHapus(e.id)} style={{ background: 'none', border: 'none', fontSize: '10.5px', color: '#b0c8c3', cursor: 'pointer', transition: 'color .15s', whiteSpace: 'nowrap' }}>
-                      Batalkan
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+            </div>
+          ))}
         </div>
+      )}
 
-        {/* Search */}
-        <div className="a3" style={{ background: '#fff', border: '.5px solid #e0ebe5', borderRadius: '18px', padding: '12px 14px', marginBottom: '12px' }}>
-          <input className="inp" style={inp} type="text" placeholder="Cari nama atau nomor blok..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
-        </div>
-
-        {/* Warga Cards */}
-        <div className="a4" style={{ background: '#fff', border: '.5px solid #e0ebe5', borderRadius: '18px', overflow: 'hidden' }}>
-          <div style={{ padding: '14px 18px', borderBottom: '.5px solid #f0ede6' }}>
-            <p style={{ fontSize: '12.5px', fontWeight: 600, color: '#18291f', margin: 0 }}>Konfirmasi Iuran</p>
-            <p style={{ fontSize: '10px', color: '#b0c8c3', margin: '2px 0 0' }}>Setujui pembayaran warga di sini</p>
+      {/* Pengeluaran Form */}
+      <div className="card animate-fade-up delay-3" style={{ marginBottom: '16px' }}>
+        <p style={{ fontSize: '15px', fontWeight: 600, color: 'var(--color-text)', margin: '0 0 14px' }}>
+          <i className="ri-arrow-up-circle-line" style={{ color: 'var(--color-danger)', marginRight: '6px' }} />
+          Input Pengeluaran
+        </p>
+        <form onSubmit={handleTambahPengeluaran} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <input type="text" placeholder="Keperluan pengeluaran" value={inputKeperluan} onChange={(e) => setInputKeperluan(e.target.value)} className="input-field" required />
+          <input type="number" placeholder="Nominal (Rp)" value={inputNominal} onChange={(e) => setInputNominal(e.target.value)} className="input-field" required />
+          <div>
+            <label className="form-label">Sumber Dana</label>
+            <select value={sumberDana} onChange={(e) => setSumberDana(e.target.value)} className="select-field">
+              <option value="Cash">Uang Tunai / Cash</option>
+              <option value="Transfer">Rekening / Hasil QRIS</option>
+            </select>
           </div>
-          <div style={{ padding: '0 12px 12px' }}>
-            {wargaTersaring.map((w, i) => (
-              <div key={w.id} className="wcard" style={{ background: '#f8f6f2', borderRadius: '14px', padding: '13px', marginTop: '9px', border: '.5px solid transparent', transition: 'border-color .2s', animationDelay: `${i * 0.05}s` }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
-                  <div>
-                    <p style={{ fontSize: '13px', fontWeight: 600, color: '#18291f', margin: 0 }}>{w.nama}</p>
-                    <div style={{ display: 'flex', gap: '4px', marginTop: '4px', flexWrap: 'wrap' }}>
-                      <span style={{ fontSize: '9.5px', fontWeight: 600, background: '#e4f2ed', color: '#2a7a62', padding: '2px 7px', borderRadius: '4px' }}>{w.blok}</span>
-                      <span style={{ fontSize: '9.5px', fontWeight: 600, background: '#e8e4dc', color: '#5a7a72', padding: '2px 7px', borderRadius: '4px' }}>{w.metode}</span>
-                    </div>
-                  </div>
-                  <span style={{ padding: '3px 8px', borderRadius: '5px', fontSize: '9.5px', fontWeight: 700, flexShrink: 0, ...(w.status === 'Lunas' ? { background: '#e0f0ea', color: '#1a6048' } : { background: '#fdf0e0', color: '#9a6010' }) }}>
-                    {w.status}
-                  </span>
+          <button type="submit" className="btn btn-danger" style={{ justifyContent: 'center' }}>
+            <i className="ri-subtract-line" /> Catat Pengeluaran
+          </button>
+        </form>
+
+        {pengeluaran.length > 0 && (
+          <div style={{ marginTop: '14px', paddingTop: '14px', borderTop: '1px dashed var(--color-border-light)' }}>
+            {pengeluaran.slice(0, 5).map(exp => (
+              <div key={exp.id} className="card-flat" style={{ marginBottom: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <p style={{ fontSize: '13px', fontWeight: 500, color: 'var(--color-text)', margin: 0 }}>{exp.keperluan}</p>
+                  <p style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-danger)', margin: 0 }}>
+                    - Rp {exp.nominal.toLocaleString('id-ID')}
+                    <span className="badge badge-neutral" style={{ marginLeft: '6px', fontSize: '10px' }}>{exp.sumber}</span>
+                  </p>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '10px', borderTop: '.5px solid #e8e4dc' }}>
-                  <div>
-                    <p style={{ fontSize: '9.5px', color: '#8a9e98', margin: 0 }}>{w.bulan}</p>
-                    <p style={{ fontSize: '13px', fontWeight: 600, color: '#18291f', margin: '2px 0 0' }}>Rp {w.nominal.toLocaleString('id-ID')}</p>
-                  </div>
-                  {w.status === 'Pending' ? (
-                    <button className="btn-setujui" onClick={() => handleSetujui(w.id)} style={{ background: '#18291f', color: '#f5f0e8', border: 'none', padding: '6px 13px', borderRadius: '9px', fontSize: '11px', fontWeight: 600, cursor: 'pointer', transition: 'all .15s' }}>
-                      Setujui
-                    </button>
-                  ) : (
-                    <span style={{ fontSize: '10.5px', color: '#b0c8c3', fontStyle: 'italic' }}>Selesai</span>
-                  )}
-                </div>
+                <button onClick={() => handleHapusPengeluaran(exp.id)} className="btn btn-ghost" style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
+                  Batalkan
+                </button>
               </div>
             ))}
           </div>
+        )}
+      </div>
+
+      {/* All Tagihan with Search */}
+      <div className="animate-fade-up delay-4">
+        <div style={{ marginBottom: '12px' }}>
+          <input
+            type="text"
+            placeholder="Cari nama atau nomor rumah warga..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="input-field"
+            style={{ background: 'var(--color-card)' }}
+          />
         </div>
 
+        <p style={{ fontSize: '15px', fontWeight: 600, color: 'var(--color-text)', margin: '0 0 12px' }}>
+          Semua Tagihan Warga
+        </p>
+
+        {tagihanTersaring.length === 0 ? (
+          <div className="card">
+            <EmptyState icon="ri-search-line" title="Tidak ditemukan" description="Coba kata kunci lain" />
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {tagihanTersaring.map(t => {
+              const status = statusTampilan(t)
+              return (
+                <div key={t.id} className="card" style={{ padding: '16px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                    <div>
+                      <p style={{ fontSize: '15px', fontWeight: 600, color: 'var(--color-text)', margin: 0 }}>{t.user.nama}</p>
+                      <div style={{ display: 'flex', gap: '4px', marginTop: '4px', flexWrap: 'wrap' }}>
+                        <span className="badge badge-neutral" style={{ fontSize: '10px' }}>Blok {t.user.noRumah}</span>
+                        {t.pembayaran && <span className="badge badge-neutral" style={{ fontSize: '10px' }}>{t.pembayaran.metodeBayar}</span>}
+                      </div>
+                    </div>
+                    <StatusBadge status={status} />
+                  </div>
+                  <div className="divider" />
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '6px' }}>
+                    <div>
+                      <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', margin: 0 }}>{t.bulan} {t.tahun}</p>
+                      <p style={{ fontSize: '15px', fontWeight: 600, color: 'var(--color-text)', margin: '2px 0 0' }}>Rp {t.jumlah.toLocaleString('id-ID')}</p>
+                    </div>
+                    {status === 'Pending' && (
+                      <button onClick={() => setConfirmApprove(t)} className="btn btn-primary btn-sm">
+                        <i className="ri-check-line" /> Setujui
+                      </button>
+                    )}
+                    {status === 'Lunas' && <span style={{ fontSize: '12px', color: 'var(--color-text-muted)', fontStyle: 'italic' }}>Valid ✓</span>}
+                    {status === 'Belum Bayar' && <span style={{ fontSize: '12px', color: 'var(--color-text-muted)', fontStyle: 'italic' }}>Menunggu warga</span>}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
       </div>
-    </div>
+
+      {/* Approve Modal */}
+      <Modal isOpen={!!confirmApprove} onClose={() => setConfirmApprove(null)} title="Konfirmasi Persetujuan" size="sm">
+        {confirmApprove && (
+          <>
+            <p style={{ fontSize: '14px', color: 'var(--color-text-secondary)', lineHeight: 1.5, margin: '0 0 16px' }}>
+              Setujui pembayaran dari <strong>{confirmApprove.user.nama}</strong> (Blok {confirmApprove.user.noRumah})?
+            </p>
+            <div className="card-flat" style={{ marginBottom: '16px' }}>
+              <p style={{ margin: 0, fontSize: '14px' }}>{confirmApprove.bulan} {confirmApprove.tahun}</p>
+              <p style={{ margin: '4px 0 0', fontSize: '18px', fontWeight: 600, color: 'var(--color-text)' }}>
+                Rp {confirmApprove.jumlah.toLocaleString('id-ID')}
+              </p>
+            </div>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button onClick={() => setConfirmApprove(null)} className="btn btn-secondary btn-sm" style={{ flex: 1 }}>Batal</button>
+              <button onClick={() => handleSetujui(confirmApprove.pembayaran.id)} className="btn btn-primary btn-sm" style={{ flex: 1 }}>
+                <i className="ri-check-double-line" /> Setujui
+              </button>
+            </div>
+          </>
+        )}
+      </Modal>
+    </>
   )
 }

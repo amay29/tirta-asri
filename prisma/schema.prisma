@@ -1,6 +1,5 @@
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -56,6 +55,22 @@ model Surat {
 
   userId    Int
   user      User     @relation(fields: [userId], references: [id])
+}
+
+model Pengeluaran {
+  id        Int      @id @default(autoincrement())
+  keperluan String
+  nominal   Int
+  sumber    String
+  createdAt DateTime @default(now())
+}
+
+model Pengumuman {
+  id        Int      @id @default(autoincrement())
+  judul     String
+  isi       String
+  penting   Boolean  @default(false)
+  createdAt DateTime @default(now())
 }
 
 enum Role {
