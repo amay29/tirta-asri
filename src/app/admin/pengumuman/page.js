@@ -131,7 +131,6 @@ export default function PengumumanAdmin() {
         )}
       </div>
 
-      {/* Delete Confirm */}
       <Modal isOpen={!!deleteId} onClose={() => setDeleteId(null)} title="Hapus Pengumuman?" size="sm">
         <p style={{ fontSize: '14px', color: 'var(--color-text-secondary)', margin: '0 0 16px' }}>
           Pengumuman yang dihapus tidak bisa dikembalikan.

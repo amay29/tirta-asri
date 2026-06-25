@@ -108,7 +108,7 @@ async function main() {
   await prisma.pengumuman.create({
     data: {
       judul: 'Iuran Bulanan Juli 2026',
-      isi: 'Iuran bulan Juli 2026 sebesar Rp 50.000 sudah bisa dibayarkan melalui portal ini. Mohon segera dilunasi sebelum tanggal 15 Juli 2026.',
+      isi: 'Iuran bulan Juli 2026 sebesar Rp 150.000 sudah bisa dibayarkan melalui portal ini. Mohon segera dilunasi sebelum tanggal 15 Juli 2026.',
       penting: false,
     },
   })

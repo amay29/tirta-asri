@@ -51,7 +51,7 @@ export default function Home() {
           }}>
             Selamat datang di portal warga Tirta Asri Residence.
             Kelola iuran bulanan, ajukan surat keterangan, dan pantau
-            informasi terbaru dari pengurus RT — semua dalam satu tempat.
+            informasi terbaru  — semua dalam satu tempat.
           </p>
 
           <div className="animate-fade-up delay-1" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>

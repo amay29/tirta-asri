@@ -1,19 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
-// =====================================================================
-// /api/pembayaran
-// =====================================================================
-// Alur: warga punya Tagihan berstatus BELUM_BAYAR -> warga "bayar" lewat
-// endpoint ini -> tercipta record Pembayaran berstatus PENDING terhubung
-// ke tagihan itu -> admin approve -> Pembayaran jadi SUCCESS DAN status
-// Tagihan ikut diubah jadi SUDAH_BAYAR (dua perubahan ini dilakukan
-// bersamaan dalam satu transaction, supaya tidak mungkin salah satu
-// berubah sementara yang lain tidak).
-// =====================================================================
-
-// POST /api/pembayaran
-// Body: { tagihanId, metodeBayar }  -> metodeBayar: 'Tunai' atau 'QRIS Gateway'
 export async function POST(request) {
   try {
     const body = await request.json()

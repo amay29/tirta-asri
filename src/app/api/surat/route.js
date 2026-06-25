@@ -1,17 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
-// =====================================================================
-// /api/surat
-// =====================================================================
-// Alur: warga mengajukan surat (misal Surat Keterangan Domisili) ->
-// status PENDING -> admin ubah jadi DIPROSES selagi dikerjakan -> admin
-// ubah jadi SELESAI (dan idealnya upload file PDF hasil suratnya) atau
-// DITOLAK kalau memang tidak bisa diproses.
-// =====================================================================
-
-// GET /api/surat?userId=3   -> surat milik 1 warga
-// GET /api/surat            -> semua pengajuan surat (untuk admin)
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url)
