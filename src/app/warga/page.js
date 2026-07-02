@@ -30,26 +30,43 @@ export default function WargaDashboard() {
   const toast = useToast()
   const [tagihanList, setTagihanList] = useState([])
   const [pengumuman, setPengumuman] = useState([])
+  const [kasData, setKasData] = useState(null)
   const [loadingData, setLoadingData] = useState(true)
   const [showPayModal, setShowPayModal] = useState(false)
   const [selectedTagihan, setSelectedTagihan] = useState(null)
   const [metodePilihan, setMetodePilihan] = useState('QRIS Gateway')
   const [paymentStep, setPaymentStep] = useState('select')
+  const [showKasDetail, setShowKasDetail] = useState(false)
+  const [countdown, setCountdown] = useState(10)
 
   const ambilData = async () => {
     if (!user) return
     try {
-      const [tRes, pRes] = await Promise.all([
+      const [tRes, pRes, allTRes, expRes] = await Promise.all([
         fetch(`/api/tagihan?userId=${user.id}`),
         fetch('/api/pengumuman'),
+        fetch('/api/tagihan'),
+        fetch('/api/pengeluaran'),
       ])
-      if (tRes.ok) {
-        const t = await tRes.json()
-        setTagihanList(t.tagihan || [])
-      }
-      if (pRes.ok) {
-        const p = await pRes.json()
-        setPengumuman(p.pengumuman || [])
+      if (tRes.ok) { const t = await tRes.json(); setTagihanList(t.tagihan || []) }
+      if (pRes.ok) { const p = await pRes.json(); setPengumuman(p.pengumuman || []) }
+
+      // Hitung transparansi kas
+      if (allTRes.ok && expRes.ok) {
+        const allTagihan = (await allTRes.json()).tagihan || []
+        const allPengeluaran = (await expRes.json()).riwayatPengeluaran || []
+
+        const lunas = allTagihan.filter(t => t.pembayaran?.status === 'SUCCESS')
+        const masuk = lunas.reduce((s, t) => s + t.jumlah, 0)
+        const keluar = allPengeluaran.reduce((s, p) => s + p.nominal, 0)
+
+        setKasData({
+          totalMasuk: masuk,
+          totalKeluar: keluar,
+          saldo: masuk - keluar,
+          jumlahWargaLunas: lunas.length,
+          pengeluaranList: allPengeluaran.slice(0, 8),
+        })
       }
     } catch (err) {
       console.error(err)
@@ -66,6 +83,7 @@ export default function WargaDashboard() {
     setSelectedTagihan(tagihan)
     setMetodePilihan('QRIS Gateway')
     setPaymentStep('select')
+    setCountdown(10)
     setShowPayModal(true)
   }
 
@@ -94,15 +112,26 @@ export default function WargaDashboard() {
   const handleProsesMetode = () => {
     if (metodePilihan === 'QRIS Gateway') {
       setPaymentStep('scanning')
+      setCountdown(10)
     } else {
       kirimPembayaran('Tunai')
     }
   }
 
+  // Countdown timer for QRIS
   useEffect(() => {
     if (showPayModal && paymentStep === 'scanning') {
-      const timer = setTimeout(() => kirimPembayaran('QRIS Gateway'), 5000)
-      return () => clearTimeout(timer)
+      const interval = setInterval(() => {
+        setCountdown(prev => {
+          if (prev <= 1) {
+            clearInterval(interval)
+            kirimPembayaran('QRIS Gateway')
+            return 0
+          }
+          return prev - 1
+        })
+      }, 1000)
+      return () => clearInterval(interval)
     }
   }, [showPayModal, paymentStep])
 
@@ -150,6 +179,71 @@ export default function WargaDashboard() {
           <p className="stat-label" style={{ color: '#5a9e8a' }}>Tagihan Belum Dibayar</p>
           <p className="stat-value">Rp {totalBelum.toLocaleString('id-ID')}</p>
           <p className="stat-footnote" style={{ color: '#4a7a68' }}>{belumBayar.length} tagihan menunggu</p>
+        </div>
+      )}
+
+      {/* === TRANSPARANSI KAS RT === */}
+      {kasData && (
+        <div className="card animate-fade-up delay-2" style={{ marginBottom: '16px' }}>
+          <div
+            onClick={() => setShowKasDetail(!showKasDetail)}
+            style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+          >
+            <div>
+              <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', margin: '0 0 2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <i className="ri-shield-check-line" style={{ color: 'var(--color-primary)' }} />
+                Transparansi Kas RT
+              </p>
+              <p style={{ fontSize: '20px', fontWeight: 600, color: 'var(--color-text)', margin: 0 }}>
+                Rp {kasData.saldo.toLocaleString('id-ID')}
+              </p>
+            </div>
+            <i className={`ri-arrow-${showKasDetail ? 'up' : 'down'}-s-line`}
+              style={{ fontSize: '20px', color: 'var(--color-text-muted)' }} />
+          </div>
+
+          {showKasDetail && (
+            <div style={{ marginTop: '14px', paddingTop: '14px', borderTop: '1px dashed var(--color-border-light)' }}>
+              <div style={{ display: 'flex', gap: '12px', marginBottom: '12px' }}>
+                <div style={{ flex: 1, background: 'var(--color-success-bg)', borderRadius: 'var(--radius-md)', padding: '10px 12px' }}>
+                  <p style={{ fontSize: '11px', color: 'var(--color-success)', margin: '0 0 2px' }}>Pemasukan</p>
+                  <p style={{ fontSize: '15px', fontWeight: 600, color: 'var(--color-success)', margin: 0 }}>
+                    Rp {kasData.totalMasuk.toLocaleString('id-ID')}
+                  </p>
+                  <p style={{ fontSize: '10px', color: 'var(--color-text-muted)', margin: '2px 0 0' }}>
+                    {kasData.jumlahWargaLunas} pembayaran
+                  </p>
+                </div>
+                <div style={{ flex: 1, background: 'var(--color-danger-bg)', borderRadius: 'var(--radius-md)', padding: '10px 12px' }}>
+                  <p style={{ fontSize: '11px', color: 'var(--color-danger)', margin: '0 0 2px' }}>Pengeluaran</p>
+                  <p style={{ fontSize: '15px', fontWeight: 600, color: 'var(--color-danger)', margin: 0 }}>
+                    Rp {kasData.totalKeluar.toLocaleString('id-ID')}
+                  </p>
+                </div>
+              </div>
+
+              {kasData.pengeluaranList.length > 0 && (
+                <>
+                  <p style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-secondary)', margin: '0 0 8px' }}>
+                    Catatan Pengeluaran Terakhir
+                  </p>
+                  {kasData.pengeluaranList.map(exp => (
+                    <div key={exp.id} className="card-flat" style={{ marginBottom: '4px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div>
+                        <p style={{ fontSize: '13px', color: 'var(--color-text)', margin: 0 }}>{exp.keperluan}</p>
+                        <p style={{ fontSize: '10px', color: 'var(--color-text-muted)', margin: '1px 0 0' }}>
+                          {new Date(exp.createdAt).toLocaleDateString('id-ID')}
+                        </p>
+                      </div>
+                      <p style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-danger)', margin: 0 }}>
+                        - Rp {exp.nominal.toLocaleString('id-ID')}
+                      </p>
+                    </div>
+                  ))}
+                </>
+              )}
+            </div>
+          )}
         </div>
       )}
 
@@ -244,7 +338,7 @@ export default function WargaDashboard() {
               className="select-field"
               style={{ marginBottom: '16px' }}
             >
-              <option value="QRIS Gateway">QRIS Gateway (Otomatis)</option>
+              <option value="QRIS Gateway">QRIS Gateway (Scan QR)</option>
               <option value="Tunai">Tunai / Cash (Titip Pengurus)</option>
             </select>
             <button onClick={handleProsesMetode} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
@@ -255,19 +349,40 @@ export default function WargaDashboard() {
 
         {paymentStep === 'scanning' && (
           <div style={{ textAlign: 'center' }}>
-            <p style={{ fontSize: '13px', color: 'var(--color-danger)', fontWeight: 600, margin: '0 0 20px' }}>
-              <i className="ri-time-line" /> Bayar dalam 5 menit
-            </p>
+            {/* Countdown bar */}
+            <div style={{ marginBottom: '16px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '4px' }}>
+                <span style={{ color: 'var(--color-danger)', fontWeight: 600 }}>
+                  <i className="ri-time-line" /> Sisa waktu
+                </span>
+                <span style={{ color: 'var(--color-danger)', fontWeight: 600 }}>00:{String(countdown).padStart(2, '0')}</span>
+              </div>
+              <div className="progress-bar" style={{ height: '4px' }}>
+                <div className="progress-bar-fill" style={{
+                  width: `${(countdown / 10) * 100}%`,
+                  background: countdown <= 3 ? 'var(--color-danger)' : 'var(--color-primary)',
+                  transition: 'width 1s linear',
+                }} />
+              </div>
+            </div>
+
             <div style={{
-              width: '180px', height: '180px', margin: '0 auto 20px',
+              width: '180px', height: '180px', margin: '0 auto 16px',
               background: '#fff', borderRadius: 'var(--radius-lg)', padding: '14px',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               border: '1px solid var(--color-border-light)',
             }}>
-              <QRCodeSVG value="https://tirta-asri-residence.vercel.app/payment" size={152} fgColor="#18291f" />
+              <QRCodeSVG
+                value={typeof window !== 'undefined' ? `${window.location.origin}/payment` : 'https://tirta-asri.local/payment'}
+                size={152}
+                fgColor="#18291f"
+              />
             </div>
-            <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', fontStyle: 'italic' }}>
-              Sistem mendeteksi otomatis, silakan scan...
+            <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', margin: '0 0 4px' }}>
+              Scan dengan aplikasi e-wallet Anda
+            </p>
+            <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', fontStyle: 'italic' }}>
+              Pembayaran otomatis tercatat setelah countdown selesai
             </p>
           </div>
         )}

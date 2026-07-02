@@ -857,11 +857,22 @@ body {
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.auth-form-area {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 24px 24px 64px;
 }
 
 @media (min-width: 768px) {
   .auth-page {
     flex-direction: row;
+    overflow: hidden;
   }
   .auth-hero {
     width: 45%;
@@ -869,11 +880,25 @@ body {
   }
   .auth-form-area {
     width: 55%;
-    display: flex;
     align-items: center;
-    justify-content: center;
     padding: 40px;
+    overflow-y: auto;
   }
+}
+
+/* === HIDE NUMBER INPUT ARROWS === */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* === PRINT === */
+@media print {
+  .no-print { display: none !important; }
 }
 
 /* === ANNOUNCEMENT CARD === */

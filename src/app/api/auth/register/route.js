@@ -5,13 +5,16 @@ import { prisma } from '@/lib/prisma'
 export async function POST(request) {
   try {
     const body = await request.json()
-    const { nama, noRumah, noHp } = body
+    const { nama, noRumah, pin } = body
 
-    if (!nama || !noRumah || !noHp) {
-      return NextResponse.json({ pesan: 'Nama, nomor rumah, dan nomor HP wajib diisi' }, { status: 400 })
+    if (!nama || !noRumah || !pin) {
+      return NextResponse.json({ pesan: 'Nama, nomor rumah, dan PIN wajib diisi' }, { status: 400 })
     }
 
-    const emailSemu = `${noRumah.toLowerCase().replace(/\s+/g, '')}@warga.tirta-asri.local`
+    // Validasi PIN 6 digit
+    if (!/^\d{6}$/.test(pin)) {
+      return NextResponse.json({ pesan: 'PIN harus terdiri dari 6 angka' }, { status: 400 })
+    }
 
     const sudahAda = await prisma.user.findFirst({
       where: { noRumah },
@@ -21,7 +24,8 @@ export async function POST(request) {
       return NextResponse.json({ pesan: 'Nomor rumah ini sudah terdaftar. Silakan login.' }, { status: 409 })
     }
 
-    const passwordHash = await bcrypt.hash(noHp, 10)
+    const emailSemu = `${noRumah.toLowerCase().replace(/\s+/g, '')}@warga.tirta-asri.local`
+    const passwordHash = await bcrypt.hash(pin, 10)
 
     const userBaru = await prisma.user.create({
       data: {
@@ -39,7 +43,7 @@ export async function POST(request) {
       },
     })
 
-    return NextResponse.json({ pesan: 'Pendaftaran berhasil', user: userBaru })
+    return NextResponse.json({ pesan: 'Pendaftaran berhasil! Silakan login dengan PIN Anda.', user: userBaru })
   } catch (error) {
     console.error(error)
     return NextResponse.json({ pesan: 'Gagal mendaftarkan akun' }, { status: 500 })

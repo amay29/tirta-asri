@@ -7,7 +7,7 @@ const navItems = [
   { href: '/admin', icon: 'ri-dashboard-line', label: 'Dashboard', exact: true },
   { href: '/admin/warga', icon: 'ri-group-line', label: 'Kelola Warga' },
   { href: '/admin/surat', icon: 'ri-file-text-line', label: 'Surat Masuk' },
-  { href: '/riwayat', icon: 'ri-history-line', label: 'Riwayat Dana' },
+  { href: '/admin/riwayat', icon: 'ri-history-line', label: 'Riwayat Dana' },
   { href: '/admin/pengumuman', icon: 'ri-megaphone-line', label: 'Pengumuman' },
 ]
 

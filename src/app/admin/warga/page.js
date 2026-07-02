@@ -131,12 +131,32 @@ export default function KelolaWarga() {
                       <p style={{ fontSize: '15px', fontWeight: 600, color: 'var(--color-text)', margin: 0 }}>{w.nama}</p>
                       <span className="badge badge-neutral" style={{ fontSize: '10px', marginTop: '4px' }}>Blok {w.noRumah}</span>
                     </div>
-                    <button
-                      onClick={() => { setSelectedWarga(w); setShowTagihanModal(true) }}
-                      className="btn btn-ghost btn-sm"
-                    >
-                      <i className="ri-add-line" /> Tagihan
-                    </button>
+                    <div style={{ display: 'flex', gap: '4px' }}>
+                      <button
+                        onClick={async () => {
+                          if (!confirm(`Reset PIN ${w.nama} ke 123456?`)) return
+                          try {
+                            const res = await fetch('/api/auth/reset-pin', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ userId: w.id }),
+                            })
+                            if (res.ok) toast.success(`PIN ${w.nama} direset ke 123456`)
+                            else toast.error('Gagal reset PIN')
+                          } catch { toast.error('Gagal reset PIN') }
+                        }}
+                        className="btn btn-ghost btn-sm"
+                        style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}
+                      >
+                        <i className="ri-lock-unlock-line" /> Reset PIN
+                      </button>
+                      <button
+                        onClick={() => { setSelectedWarga(w); setShowTagihanModal(true) }}
+                        className="btn btn-ghost btn-sm"
+                      >
+                        <i className="ri-add-line" /> Tagihan
+                      </button>
+                    </div>
                   </div>
                   <div className="divider" />
                   <div style={{ display: 'flex', gap: '16px', paddingTop: '6px' }}>

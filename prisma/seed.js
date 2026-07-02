@@ -18,12 +18,12 @@ async function main() {
   await prisma.user.deleteMany()
 
   console.log('Membuat akun admin...')
-  const passwordAdmin = await bcrypt.hash('admin123', 10)
+  const pinAdmin = await bcrypt.hash('112233', 10)
   const admin = await prisma.user.create({
     data: {
       nama: 'Pengurus RT',
       email: 'admin@tirta-asri.local',
-      password: passwordAdmin,
+      password: pinAdmin,
       noRumah: 'ADMIN',
       role: 'ADMIN',
     },
@@ -31,23 +31,25 @@ async function main() {
 
   console.log('Membuat akun warga dummy...')
   const dataWarga = [
-    { nama: 'Budi Santoso',  noRumah: 'B17', noHp: '081111111111' },
-    { nama: 'Siti Rahma',    noRumah: 'A05', noHp: '081222222222' },
-    { nama: 'Irma Noviana',  noRumah: 'C12', noHp: '081333333333' },
-    { nama: 'Agus Setiawan', noRumah: 'B02', noHp: '081444444444' },
-    { nama: 'Hendra Wijaya', noRumah: 'D08', noHp: '081555555555' },
+    { nama: 'Budi Santoso',  noRumah: 'B17' },
+    { nama: 'Siti Rahma',    noRumah: 'A05' },
+    { nama: 'Irma Noviana',  noRumah: 'C12' },
+    { nama: 'Agus Setiawan', noRumah: 'B02' },
+    { nama: 'Hendra Wijaya', noRumah: 'D08' },
   ]
+
+  // Semua warga pakai PIN 123456 untuk kemudahan demo
+  const pinWarga = await bcrypt.hash('123456', 10)
 
   const wargaTerbuat = []
   for (const w of dataWarga) {
-    const passwordHash = await bcrypt.hash(w.noHp, 10)
     const emailSemu = `${w.noRumah.toLowerCase()}@warga.tirta-asri.local`
     const user = await prisma.user.create({
       data: {
         nama: w.nama,
         noRumah: w.noRumah,
         email: emailSemu,
-        password: passwordHash,
+        password: pinWarga,
         role: 'WARGA',
       },
     })
@@ -108,7 +110,7 @@ async function main() {
   await prisma.pengumuman.create({
     data: {
       judul: 'Iuran Bulanan Juli 2026',
-      isi: 'Iuran bulan Juli 2026 sebesar Rp 150.000 sudah bisa dibayarkan melalui portal ini. Mohon segera dilunasi sebelum tanggal 15 Juli 2026.',
+      isi: 'Iuran bulan Juli 2026 sebesar Rp 50.000 sudah bisa dibayarkan melalui portal ini. Mohon segera dilunasi sebelum tanggal 15 Juli 2026.',
       penting: false,
     },
   })
@@ -121,10 +123,14 @@ async function main() {
   })
 
   console.log('')
-  console.log('Selesai! Akun untuk dicoba:')
-  console.log('  ADMIN  -> Nomor Rumah: ADMIN   | No HP: admin123')
-  console.log('  WARGA  -> Nomor Rumah: B17     | No HP: 081111111111 (Budi)')
-  console.log('  WARGA  -> Nomor Rumah: D08     | No HP: 081555555555 (Hendra)')
+  console.log('════════════════════════════════════════════')
+  console.log('  Selesai! Akun untuk dicoba:')
+  console.log('────────────────────────────────────────────')
+  console.log('  ADMIN  → No Rumah: ADMIN   | PIN: 112233')
+  console.log('  WARGA  → No Rumah: B17     | PIN: 123456 (Budi)')
+  console.log('  WARGA  → No Rumah: D08     | PIN: 123456 (Hendra)')
+  console.log('  (Semua warga pakai PIN: 123456)')
+  console.log('════════════════════════════════════════════')
 }
 
 main()

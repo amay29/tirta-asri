@@ -148,10 +148,10 @@ export default function SuratWarga() {
                   <i className="ri-calendar-line" style={{ marginRight: '4px' }} />
                   Diajukan {new Date(s.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
                 </p>
-                {s.status === 'SELESAI' && s.filePdf && (
-                  <a href={s.filePdf} target="_blank" rel="noopener noreferrer"
-                    className="btn btn-ghost" style={{ marginTop: '8px', color: 'var(--color-primary)' }}>
-                    <i className="ri-download-line" /> Unduh Surat
+                {s.status === 'SELESAI' && (
+                  <a href={s.filePdf || `/cetak/surat/${s.id}`} target="_blank" rel="noopener noreferrer"
+                    className="btn btn-primary btn-sm" style={{ marginTop: '10px', justifyContent: 'center', width: '100%' }}>
+                    <i className="ri-printer-line" /> Lihat & Cetak Surat
                   </a>
                 )}
               </div>

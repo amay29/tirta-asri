@@ -80,6 +80,7 @@ export default function AdminDashboard() {
   }
 
   const handleHapusPengeluaran = async (id) => {
+    if (!confirm('Yakin ingin membatalkan pengeluaran ini? Data yang sudah dihapus tidak bisa dikembalikan.')) return
     try {
       const res = await fetch('/api/pengeluaran', {
         method: 'DELETE',
@@ -172,7 +173,7 @@ export default function AdminDashboard() {
         </p>
         <form onSubmit={handleTambahPengeluaran} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           <input type="text" placeholder="Keperluan pengeluaran" value={inputKeperluan} onChange={(e) => setInputKeperluan(e.target.value)} className="input-field" required />
-          <input type="number" placeholder="Nominal (Rp)" value={inputNominal} onChange={(e) => setInputNominal(e.target.value)} className="input-field" required />
+          <input type="number" inputMode="numeric" placeholder="Nominal (Rp)" value={inputNominal} onChange={(e) => setInputNominal(e.target.value)} className="input-field" min="0" required />
           <div>
             <label className="form-label">Sumber Dana</label>
             <select value={sumberDana} onChange={(e) => setSumberDana(e.target.value)} className="select-field">
@@ -191,9 +192,12 @@ export default function AdminDashboard() {
               <div key={exp.id} className="card-flat" style={{ marginBottom: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
                   <p style={{ fontSize: '13px', fontWeight: 500, color: 'var(--color-text)', margin: 0 }}>{exp.keperluan}</p>
-                  <p style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-danger)', margin: 0 }}>
+                  <p style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-danger)', margin: '2px 0 0' }}>
                     - Rp {exp.nominal.toLocaleString('id-ID')}
                     <span className="badge badge-neutral" style={{ marginLeft: '6px', fontSize: '10px' }}>{exp.sumber}</span>
+                  </p>
+                  <p style={{ fontSize: '10px', color: 'var(--color-text-muted)', margin: '2px 0 0' }}>
+                    {new Date(exp.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
                   </p>
                 </div>
                 <button onClick={() => handleHapusPengeluaran(exp.id)} className="btn btn-ghost" style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>

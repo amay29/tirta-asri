@@ -8,8 +8,7 @@ import Link from 'next/link'
 export default function Login() {
   const router = useRouter()
   const [noRumah, setNoRumah] = useState('')
-  const [noHp, setNoHp] = useState('')
-  const [showPw, setShowPw] = useState(false)
+  const [pin, setPin] = useState('')
   const [loading, setLoading] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
 
@@ -22,7 +21,7 @@ export default function Login() {
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ noRumah: noRumah.trim(), noHp }),
+        body: JSON.stringify({ noRumah: noRumah.trim(), pin }),
       })
 
       const contentType = response.headers.get('content-type')
@@ -40,7 +39,7 @@ export default function Login() {
         return
       }
 
-      localStorage.setItem('tirtaAsriUser', JSON.stringify(hasil.user))
+      localStorage.setItem('tirtaAsriUser', JSON.stringify({ ...hasil.user, loginAt: Date.now() }))
 
       if (hasil.user.role === 'ADMIN') {
         router.push('/admin')
@@ -52,6 +51,12 @@ export default function Login() {
       setErrorMsg('Tidak dapat terhubung ke server')
       setLoading(false)
     }
+  }
+
+  // Handle PIN input — angka saja, max 6 digit
+  const handlePinChange = (e) => {
+    const val = e.target.value.replace(/\D/g, '').slice(0, 6)
+    setPin(val)
   }
 
   return (
@@ -82,7 +87,7 @@ export default function Login() {
       </div>
 
       {/* Form Side */}
-      <div className="auth-form-area" style={{ flex: 1, padding: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div className="auth-form-area">
         <div style={{ width: '100%', maxWidth: '400px' }}>
           <div className="animate-fade-up">
             <p className="label-small" style={{ marginBottom: '4px' }}>Selamat datang</p>
@@ -109,35 +114,27 @@ export default function Login() {
             </div>
 
             <div className="animate-fade-up delay-2" style={{ marginBottom: '16px' }}>
-              <label className="form-label" htmlFor="noHp">
-                <i className="ri-phone-line" style={{ marginRight: '6px' }} />
-                Nomor HP (Password)
+              <label className="form-label" htmlFor="pin">
+                <i className="ri-lock-2-line" style={{ marginRight: '6px' }} />
+                PIN (6 Digit)
               </label>
-              <div style={{ position: 'relative' }}>
-                <input
-                  id="noHp"
-                  type={showPw ? 'text' : 'password'}
-                  placeholder="Masukkan nomor HP Anda"
-                  value={noHp}
-                  onChange={(e) => setNoHp(e.target.value)}
-                  className="input-field"
-                  style={{ paddingRight: '48px' }}
-                  autoComplete="current-password"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPw(!showPw)}
-                  style={{
-                    position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)',
-                    background: 'none', border: 'none', color: 'var(--color-text-muted)',
-                    cursor: 'pointer', fontSize: '18px', padding: '4px',
-                  }}
-                  aria-label={showPw ? 'Sembunyikan password' : 'Tampilkan password'}
-                >
-                  <i className={showPw ? 'ri-eye-off-line' : 'ri-eye-line'} />
-                </button>
-              </div>
+              <input
+                id="pin"
+                type="password"
+                inputMode="numeric"
+                placeholder="● ● ● ● ● ●"
+                value={pin}
+                onChange={handlePinChange}
+                className="input-field"
+                style={{ letterSpacing: pin ? '8px' : 'normal', fontSize: pin ? '20px' : '15px', textAlign: pin ? 'center' : 'left' }}
+                autoComplete="current-password"
+                maxLength={6}
+                required
+              />
+              <p className="form-hint">
+                <i className="ri-shield-check-line" style={{ marginRight: '4px' }} />
+                PIN Anda bersifat rahasia, jangan beritahu siapapun
+              </p>
             </div>
 
             {errorMsg && (
@@ -149,7 +146,7 @@ export default function Login() {
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || pin.length < 6}
               className="btn btn-primary animate-fade-up delay-3"
               style={{ width: '100%', justifyContent: 'center', marginTop: '20px', fontSize: '16px', minHeight: '52px' }}
             >

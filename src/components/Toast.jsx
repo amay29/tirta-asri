@@ -19,13 +19,6 @@ export function ToastProvider({ children }) {
     }, 3000)
   }, [])
 
-  const toast = useCallback({
-    success: (msg) => addToast(msg, 'success'),
-    error: (msg) => addToast(msg, 'error'),
-    info: (msg) => addToast(msg, 'info'),
-  }, [addToast])
-
-  // Fix: toast needs to be a plain object, not useCallback
   const toastActions = {
     success: (msg) => addToast(msg, 'success'),
     error: (msg) => addToast(msg, 'error'),

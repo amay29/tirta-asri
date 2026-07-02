@@ -31,6 +31,22 @@ export async function POST(request) {
       return NextResponse.json({ pesan: 'Data tidak lengkap' }, { status: 400 })
     }
 
+    // Cek apakah tagihan bulan+tahun sudah ada untuk user ini
+    const sudahAda = await prisma.tagihan.findFirst({
+      where: {
+        userId: parseInt(userId),
+        bulan,
+        tahun: parseInt(tahun),
+      },
+    })
+
+    if (sudahAda) {
+      return NextResponse.json(
+        { pesan: `Tagihan ${bulan} ${tahun} untuk warga ini sudah ada` },
+        { status: 409 }
+      )
+    }
+
     const tagihanBaru = await prisma.tagihan.create({
       data: {
         userId: parseInt(userId),
