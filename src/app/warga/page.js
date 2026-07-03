@@ -162,7 +162,23 @@ export default function WargaDashboard() {
                 <i className={p.penting ? 'ri-megaphone-fill' : 'ri-information-line'}
                   style={{ fontSize: '18px', color: p.penting ? 'var(--color-accent)' : 'var(--color-text-muted)', marginTop: '2px', flexShrink: 0 }} />
                 <div>
-                  <p style={{ fontSize: '14px', fontWeight: 600, color: 'var(--color-text)', margin: '0 0 2px' }}>{p.judul}</p>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginBottom: '2px' }}>
+                    <p style={{ fontSize: '14px', fontWeight: 600, color: 'var(--color-text)', margin: 0 }}>{p.judul}</p>
+                    {p.pembuatRole && (
+                      <span
+                        style={{
+                          fontSize: '9px',
+                          padding: '2px 6px',
+                          borderRadius: '4px',
+                          fontWeight: 600,
+                          background: p.pembuatRole === 'ADMIN_RT' ? 'var(--color-primary)' : 'var(--color-accent)',
+                          color: '#fff',
+                        }}
+                      >
+                        {p.pembuatRole === 'ADMIN_RT' ? 'Ketua RT' : 'Admin Iuran'}
+                      </span>
+                    )}
+                  </div>
                   <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', margin: 0, lineHeight: 1.5, whiteSpace: 'pre-line' }}>
                     {p.isi.length > 120 ? p.isi.slice(0, 120) + '...' : p.isi}
                   </p>

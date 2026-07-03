@@ -66,7 +66,7 @@ export default function Login() {
       // Selalu set cookie sebagai backup yang lebih aman di mobile (terutama iOS/Safari)
       document.cookie = `tirtaAsriUser=${encodeURIComponent(userData)}; path=/; max-age=86400; SameSite=Lax`
 
-      if (hasil.user.role === 'ADMIN') {
+      if (['ADMIN_IURAN', 'ADMIN_RT'].includes(hasil.user.role)) {
         window.location.href = '/admin'
       } else {
         window.location.href = '/warga'

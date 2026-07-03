@@ -3,16 +3,23 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
-const navItems = [
-  { href: '/admin', icon: 'ri-dashboard-line', label: 'Dashboard', exact: true },
-  { href: '/admin/warga', icon: 'ri-group-line', label: 'Kelola Warga' },
-  { href: '/admin/surat', icon: 'ri-file-text-line', label: 'Surat Masuk' },
-  { href: '/admin/riwayat', icon: 'ri-history-line', label: 'Riwayat Dana' },
-  { href: '/admin/pengumuman', icon: 'ri-megaphone-line', label: 'Pengumuman' },
+const allNavItems = [
+  { href: '/admin', icon: 'ri-dashboard-line', label: 'Dashboard', exact: true, roles: ['ADMIN_IURAN', 'ADMIN_RT'] },
+  { href: '/admin/warga', icon: 'ri-group-line', label: 'Kelola Warga', roles: ['ADMIN_IURAN', 'ADMIN_RT'] },
+  { href: '/admin/surat', icon: 'ri-file-text-line', label: 'Surat Masuk', roles: ['ADMIN_RT'] },
+  { href: '/admin/riwayat', icon: 'ri-history-line', label: 'Riwayat Dana', roles: ['ADMIN_IURAN', 'ADMIN_RT'] },
+  { href: '/admin/pengumuman', icon: 'ri-megaphone-line', label: 'Pengumuman', roles: ['ADMIN_IURAN', 'ADMIN_RT'] },
 ]
 
-export default function AdminSidebar({ isOpen, onClose, onLogout }) {
+const roleLabels = {
+  ADMIN_IURAN: 'Panel Admin Iuran',
+  ADMIN_RT: 'Panel Ketua RT',
+}
+
+export default function AdminSidebar({ isOpen, onClose, onLogout, role }) {
   const pathname = usePathname()
+  const navItems = allNavItems.filter(item => item.roles.includes(role))
+  const panelLabel = roleLabels[role] || 'Panel Admin'
 
   return (
     <>
@@ -23,7 +30,7 @@ export default function AdminSidebar({ isOpen, onClose, onLogout }) {
             Tirta Asri
           </p>
           <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', margin: '2px 0 0' }}>
-            Panel Admin RT
+            {panelLabel}
           </p>
         </div>
 

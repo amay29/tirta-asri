@@ -7,6 +7,7 @@ import StatusBadge from '@/components/StatusBadge'
 import Modal from '@/components/Modal'
 import EmptyState from '@/components/EmptyState'
 import { SkeletonDashboard } from '@/components/Skeleton'
+import Link from 'next/link'
 
 function statusTampilan(t) {
   if (!t.pembayaran) return 'Belum Bayar'
@@ -15,11 +16,20 @@ function statusTampilan(t) {
   return 'Belum Bayar'
 }
 
+function statusSuratLabel(s) {
+  if (s === 'PENDING') return 'Menunggu'
+  if (s === 'DIPROSES') return 'Diproses'
+  if (s === 'SELESAI') return 'Selesai'
+  if (s === 'DITOLAK') return 'Ditolak'
+  return s
+}
+
 export default function AdminDashboard() {
-  const { user } = useAuth('ADMIN')
+  const { user } = useAuth(['ADMIN_IURAN', 'ADMIN_RT'])
   const toast = useToast()
   const [tagihanList, setTagihanList] = useState([])
   const [pengeluaran, setPengeluaran] = useState([])
+  const [suratList, setSuratList] = useState([])
   const [loadingData, setLoadingData] = useState(true)
   const [inputKeperluan, setInputKeperluan] = useState('')
   const [inputNominal, setInputNominal] = useState('')
@@ -27,14 +37,27 @@ export default function AdminDashboard() {
   const [confirmApprove, setConfirmApprove] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
 
+  const isRT = user?.role === 'ADMIN_RT'
+  const isIuran = user?.role === 'ADMIN_IURAN'
+
   const ambilData = async () => {
     try {
-      const [tRes, pRes] = await Promise.all([
+      const fetches = [
         fetch('/api/tagihan'),
         fetch('/api/pengeluaran'),
-      ])
-      if (tRes.ok) { const d = await tRes.json(); setTagihanList(d.tagihan || []) }
-      if (pRes.ok) { const d = await pRes.json(); setPengeluaran(d.riwayatPengeluaran || []) }
+      ]
+      // Ketua RT juga ambil data surat
+      if (isRT) {
+        fetches.push(fetch('/api/surat'))
+      }
+
+      const results = await Promise.all(fetches)
+      if (results[0].ok) { const d = await results[0].json(); setTagihanList(d.tagihan || []) }
+      if (results[1].ok) { const d = await results[1].json(); setPengeluaran(d.riwayatPengeluaran || []) }
+      if (isRT && results[2] && results[2].ok) {
+        const d = await results[2].json()
+        setSuratList(d.surat || [])
+      }
     } catch (err) {
       console.error(err)
     } finally {
@@ -103,18 +126,25 @@ export default function AdminDashboard() {
   const totalSaldo = kasUangTunai + kasSaldoQris
 
   const pendingList = tagihanList.filter(t => statusTampilan(t) === 'Pending')
+  const suratPending = suratList.filter(s => s.status === 'PENDING')
 
   const tagihanTersaring = tagihanList.filter(t =>
     t.user.nama.toLowerCase().includes(searchQuery.toLowerCase()) ||
     t.user.noRumah.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
+  const dashboardTitle = isRT ? 'Dashboard Ketua RT' : 'Dashboard Admin Iuran'
+  const roleBadge = isRT ? 'Ketua RT' : 'Admin Iuran'
+
   return (
     <>
       {/* Header */}
       <div className="animate-fade-up" style={{ marginBottom: '24px' }}>
-        <p className="label-small" style={{ marginBottom: '4px' }}>Tirta Asri Residence</p>
-        <h1 className="section-title" style={{ fontSize: '26px' }}>Dashboard Pengurus</h1>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
+          <p className="label-small" style={{ margin: 0 }}>Tirta Asri Residence</p>
+          <span className="badge badge-accent" style={{ fontSize: '10px' }}>{roleBadge}</span>
+        </div>
+        <h1 className="section-title" style={{ fontSize: '26px' }}>{dashboardTitle}</h1>
         <p className="section-subtitle">
           {new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
         </p>
@@ -138,6 +168,32 @@ export default function AdminDashboard() {
           <p className="stat-footnote">Rekening digital</p>
         </div>
       </div>
+
+      {/* === KETUA RT: Surat Pending === */}
+      {isRT && suratPending.length > 0 && (
+        <div className="card animate-fade-up delay-2" style={{ marginBottom: '16px', borderLeft: '3px solid var(--color-primary)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+            <p style={{ fontSize: '15px', fontWeight: 600, color: 'var(--color-text)', margin: 0 }}>
+              <i className="ri-file-text-line" style={{ color: 'var(--color-primary)', marginRight: '6px' }} />
+              Surat Menunggu ({suratPending.length})
+            </p>
+            <Link href="/admin/surat" style={{ fontSize: '13px', color: 'var(--color-primary)', textDecoration: 'none', fontWeight: 600 }}>
+              Lihat Semua →
+            </Link>
+          </div>
+          {suratPending.slice(0, 3).map(s => (
+            <div key={s.id} className="card-flat" style={{ marginBottom: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <p style={{ fontSize: '14px', fontWeight: 600, color: 'var(--color-text)', margin: 0 }}>{s.user.nama}</p>
+                <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', margin: '2px 0 0' }}>
+                  {s.jenisSurat} · Blok {s.user.noRumah}
+                </p>
+              </div>
+              <span className="badge badge-warning" style={{ fontSize: '10px' }}>{statusSuratLabel(s.status)}</span>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Pending Approvals */}
       {pendingList.length > 0 && (

@@ -17,7 +17,7 @@ function statusTampilan(t) {
 const BULAN_LIST = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember']
 
 export default function KelolaWarga() {
-  const { user } = useAuth('ADMIN')
+  const { user } = useAuth(['ADMIN_IURAN', 'ADMIN_RT'])
   const toast = useToast()
   const [wargaList, setWargaList] = useState([])
   const [loadingData, setLoadingData] = useState(true)

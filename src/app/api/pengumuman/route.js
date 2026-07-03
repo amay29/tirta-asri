@@ -16,14 +16,20 @@ export async function GET() {
 export async function POST(request) {
   try {
     const body = await request.json()
-    const { judul, isi, penting } = body
+    const { judul, isi, penting, pembuatRole, pembuatNama } = body
 
     if (!judul || !isi) {
       return NextResponse.json({ pesan: 'Judul dan isi wajib diisi' }, { status: 400 })
     }
 
     const pengumumanBaru = await prisma.pengumuman.create({
-      data: { judul, isi, penting: penting || false },
+      data: {
+        judul,
+        isi,
+        penting: penting || false,
+        pembuatRole: pembuatRole || null,
+        pembuatNama: pembuatNama || null,
+      },
     })
 
     return NextResponse.json({ pesan: 'Pengumuman dibuat', pengumuman: pengumumanBaru })

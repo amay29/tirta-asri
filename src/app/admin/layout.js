@@ -7,7 +7,7 @@ import AdminSidebar from '@/components/AdminSidebar'
 import { SkeletonDashboard } from '@/components/Skeleton'
 
 export default function AdminLayout({ children }) {
-  const { user, loading, logout } = useAuth('ADMIN')
+  const { user, loading, logout } = useAuth(['ADMIN_IURAN', 'ADMIN_RT'])
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   if (loading || !user) {
@@ -25,6 +25,7 @@ export default function AdminLayout({ children }) {
           isOpen={sidebarOpen}
           onClose={() => setSidebarOpen(false)}
           onLogout={logout}
+          role={user.role}
         />
         <main className="admin-main" style={{ backgroundColor: 'var(--color-bg)' }}>
           {/* Mobile Header */}

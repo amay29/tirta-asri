@@ -10,6 +10,8 @@ export function useAuth(requiredRole = null) {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
 
+  const requiredRoleStr = typeof requiredRole === 'string' ? requiredRole : JSON.stringify(requiredRole)
+
   useEffect(() => {
     // Jalankan hanya di client
     if (typeof window === 'undefined') return
@@ -38,12 +40,19 @@ export function useAuth(requiredRole = null) {
       const parsed = JSON.parse(raw)
 
       // Jika role tidak cocok, arahkan ke login
-      if (requiredRole && parsed.role !== requiredRole) {
-        router.push('/login')
-        return
+      if (requiredRole) {
+        const allowedRoles = Array.isArray(requiredRole) ? requiredRole : [requiredRole]
+        if (!allowedRoles.includes(parsed.role)) {
+          router.push('/login')
+          return
+        }
       }
 
-      setUser(parsed)
+      // Hindari update state berulang jika data user tidak berubah secara nilai string (untuk cegah infinite loop)
+      setUser(prev => {
+        if (prev && JSON.stringify(prev) === JSON.stringify(parsed)) return prev
+        return parsed
+      })
       setLoading(false)
     } catch (e) {
       console.error('useAuth: session error', e)
@@ -53,7 +62,7 @@ export function useAuth(requiredRole = null) {
       document.cookie = `${SESSION_KEY}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`
       router.push('/login')
     }
-  }, [requiredRole, router])
+  }, [requiredRoleStr, router])
 
   const logout = () => {
     if (typeof window !== 'undefined') {

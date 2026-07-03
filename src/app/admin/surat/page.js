@@ -22,7 +22,7 @@ const DEFAULT_TEMPLATES = {
 }
 
 export default function SuratAdmin() {
-  const { user } = useAuth('ADMIN')
+  const { user } = useAuth('ADMIN_RT')
   const toast = useToast()
   const [suratList, setSuratList] = useState([])
   const [loadingData, setLoadingData] = useState(true)

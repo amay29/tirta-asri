@@ -6,7 +6,7 @@ import EmptyState from '@/components/EmptyState'
 import { SkeletonList } from '@/components/Skeleton'
 
 export default function RiwayatDanaMasuk() {
-  const { user } = useAuth('ADMIN')
+  const { user } = useAuth(['ADMIN_IURAN', 'ADMIN_RT'])
   const [tagihanList, setTagihanList] = useState([])
   const [loadingData, setLoadingData] = useState(true)
   const [filterBulan, setFilterBulan] = useState('Semua')

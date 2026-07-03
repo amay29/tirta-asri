@@ -7,8 +7,13 @@ import Modal from '@/components/Modal'
 import EmptyState from '@/components/EmptyState'
 import { SkeletonList } from '@/components/Skeleton'
 
+const ROLE_LABELS = {
+  ADMIN_IURAN: 'Admin Iuran',
+  ADMIN_RT: 'Ketua RT',
+}
+
 export default function PengumumanAdmin() {
-  const { user } = useAuth('ADMIN')
+  const { user } = useAuth(['ADMIN_IURAN', 'ADMIN_RT'])
   const toast = useToast()
   const [pengumumanList, setPengumumanList] = useState([])
   const [loadingData, setLoadingData] = useState(true)
@@ -53,7 +58,13 @@ export default function PengumumanAdmin() {
       const res = await fetch('/api/pengumuman', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ judul, isi, penting }),
+        body: JSON.stringify({
+          judul,
+          isi,
+          penting,
+          pembuatRole: user.role,
+          pembuatNama: user.nama,
+        }),
       })
       if (res.ok) {
         setJudul('')
@@ -128,6 +139,9 @@ export default function PengumumanAdmin() {
         <p style={{ fontSize: '15px', fontWeight: 600, color: 'var(--color-text)', margin: '0 0 14px' }}>
           <i className="ri-megaphone-line" style={{ marginRight: '6px', color: 'var(--color-accent)' }} />
           Buat Pengumuman Baru
+          <span className="badge badge-accent" style={{ marginLeft: '8px', fontSize: '10px' }}>
+            {ROLE_LABELS[user.role] || user.role}
+          </span>
         </p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           <input type="text" placeholder="Judul pengumuman" value={judul} onChange={(e) => setJudul(e.target.value)} className="input-field" required />
@@ -154,14 +168,29 @@ export default function PengumumanAdmin() {
               <div key={p.id} className={`card${p.penting ? ' announcement-card penting' : ''}`}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                   <div style={{ flex: 1, paddingRight: '12px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
                       {p.penting && <i className="ri-pushpin-fill" style={{ color: 'var(--color-accent)', fontSize: '14px' }} />}
                       <p style={{ fontSize: '15px', fontWeight: 600, color: 'var(--color-text)', margin: 0 }}>{p.judul}</p>
                     </div>
                     <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', margin: '0 0 6px', lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>{p.isi}</p>
-                    <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', margin: 0 }}>
-                      {new Date(p.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
-                    </p>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                      <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', margin: 0 }}>
+                        {new Date(p.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+                      </p>
+                      {p.pembuatRole && (
+                        <span
+                          className="badge"
+                          style={{
+                            fontSize: '9px',
+                            background: p.pembuatRole === 'ADMIN_RT' ? 'var(--color-primary)' : 'var(--color-accent)',
+                            color: '#fff',
+                          }}
+                        >
+                          {ROLE_LABELS[p.pembuatRole] || p.pembuatRole}
+                          {p.pembuatNama ? ` · ${p.pembuatNama}` : ''}
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <div style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
                     {/* Tombol Edit */}
