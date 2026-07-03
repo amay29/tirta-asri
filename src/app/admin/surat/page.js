@@ -10,12 +10,28 @@ import Link from 'next/link'
 
 const STATUS_OPSI = ['PENDING', 'DIPROSES', 'SELESAI', 'DITOLAK']
 
+const DEFAULT_TEMPLATES = {
+  'Surat Keterangan Domisili': (nama, noRumah, id, tahun) =>
+    `SURAT KETERANGAN DOMISILI\nNo: ${String(id).padStart(3, '0')}/RT-TA/${tahun}\n\nDengan ini menerangkan bahwa yang tersebut di bawah ini:\n\nNama: ${nama}\nAlamat: Perumahan Tirta Asri Residence, Blok ${noRumah}\n\nBenar-benar berdomisili di alamat tersebut di atas.\n\nDemikian surat keterangan ini dibuat dengan sebenarnya untuk dapat dipergunakan sebagaimana mestinya.`,
+  'Surat Keterangan Tidak Mampu': (nama, noRumah, id, tahun) =>
+    `SURAT KETERANGAN TIDAK MAMPU\nNo: ${String(id).padStart(3, '0')}/RT-TA/${tahun}\n\nDengan ini menerangkan bahwa:\n\nNama: ${nama}\nAlamat: Perumahan Tirta Asri Residence, Blok ${noRumah}\n\nBerdasarkan pengamatan kami, yang bersangkutan termasuk keluarga yang kurang mampu.\n\nDemikian surat keterangan ini dibuat dengan sebenarnya untuk dapat dipergunakan sebagaimana mestinya.`,
+  'Surat Pengantar RT': (nama, noRumah, id, tahun) =>
+    `SURAT PENGANTAR RT\nNo: ${String(id).padStart(3, '0')}/RT-TA/${tahun}\n\nDengan ini memberikan pengantar kepada:\n\nNama: ${nama}\nAlamat: Perumahan Tirta Asri Residence, Blok ${noRumah}\n\nYang bersangkutan adalah benar warga kami yang berdomisili di lingkungan RT kami.\n\nDemikian surat pengantar ini dibuat dengan sebenarnya untuk dapat dipergunakan sebagaimana mestinya.`,
+  'Surat Keterangan Usaha': (nama, noRumah, id, tahun) =>
+    `SURAT KETERANGAN USAHA\nNo: ${String(id).padStart(3, '0')}/RT-TA/${tahun}\n\nDengan ini menerangkan bahwa:\n\nNama: ${nama}\nAlamat: Perumahan Tirta Asri Residence, Blok ${noRumah}\n\nBerdasarkan data yang ada, yang bersangkutan memiliki usaha dan berdomisili di wilayah kami.\n\nDemikian surat keterangan ini dibuat dengan sebenarnya untuk dapat dipergunakan sebagaimana mestinya.`,
+}
+
 export default function SuratAdmin() {
   const { user } = useAuth('ADMIN')
   const toast = useToast()
   const [suratList, setSuratList] = useState([])
   const [loadingData, setLoadingData] = useState(true)
   const [filterStatus, setFilterStatus] = useState('Semua')
+
+  // State untuk editing isi surat
+  const [editingId, setEditingId] = useState(null)
+  const [editContent, setEditContent] = useState('')
+  const [menyimpanId, setMenyimpanId] = useState(null)
 
   const ambilSurat = async () => {
     try {
@@ -35,7 +51,6 @@ export default function SuratAdmin() {
 
   const handleUbahStatus = async (id, statusBaru) => {
     try {
-      // Auto-set filePdf saat status = SELESAI
       const body = { id, status: statusBaru }
       if (statusBaru === 'SELESAI') {
         body.filePdf = `/cetak/surat/${id}`
@@ -47,10 +62,43 @@ export default function SuratAdmin() {
         body: JSON.stringify(body),
       })
       if (res.ok) {
-        toast.success(statusBaru === 'SELESAI' ? 'Surat siap dicetak & diunduh warga!' : 'Status surat diperbarui')
+        toast.success(statusBaru === 'SELESAI' ? 'Surat selesai & siap dicetak!' : 'Status surat diperbarui')
         ambilSurat()
       }
     } catch { toast.error('Gagal mengubah status') }
+  }
+
+  const mulaiEdit = (s) => {
+    setEditingId(s.id)
+    if (s.isiSurat) {
+      setEditContent(s.isiSurat)
+    } else {
+      const templateFn = DEFAULT_TEMPLATES[s.jenisSurat] || DEFAULT_TEMPLATES['Surat Pengantar RT']
+      const tahun = new Date(s.createdAt).getFullYear()
+      setEditContent(templateFn(s.user.nama, s.user.noRumah, s.id, tahun))
+    }
+  }
+
+  const simpanIsiSurat = async (id) => {
+    setMenyimpanId(id)
+    try {
+      const res = await fetch('/api/surat', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, isiSurat: editContent }),
+      })
+      if (res.ok) {
+        toast.success('Isi draf surat berhasil disimpan')
+        setEditingId(null)
+        ambilSurat()
+      } else {
+        toast.error('Gagal menyimpan isi surat')
+      }
+    } catch {
+      toast.error('Gagal menghubungi server')
+    } finally {
+      setMenyimpanId(null)
+    }
   }
 
   if (!user || loadingData) return <SkeletonList count={3} />
@@ -102,7 +150,44 @@ export default function SuratAdmin() {
                 </div>
 
                 {s.keterangan && (
-                  <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', margin: '0 0 10px', lineHeight: 1.5 }}>{s.keterangan}</p>
+                  <div style={{ background: 'var(--color-bg)', padding: '10px 12px', borderRadius: 'var(--radius-md)', marginBottom: '12px' }}>
+                    <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', margin: '0 0 4px', fontWeight: 600 }}>Keterangan dari Warga:</p>
+                    <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', margin: 0, lineHeight: 1.5, whiteSpace: 'pre-line' }}>{s.keterangan}</p>
+                  </div>
+                )}
+
+                {/* Editor Section */}
+                {editingId === s.id ? (
+                  <div style={{ marginTop: '10px', marginBottom: '14px' }}>
+                    <label className="form-label" style={{ fontSize: '12px', marginBottom: '6px' }}>Edit Isi Dokumen Sebelum Dicetak:</label>
+                    <textarea
+                      value={editContent}
+                      onChange={(e) => setEditContent(e.target.value)}
+                      className="textarea-field"
+                      rows={6}
+                      style={{ fontSize: '13px', fontFamily: 'monospace', lineHeight: 1.5, background: '#faf8f4' }}
+                    />
+                    <div style={{ display: 'flex', gap: '6px', marginTop: '8px', justifyContent: 'flex-end' }}>
+                      <button onClick={() => setEditingId(null)} className="btn btn-secondary btn-sm" style={{ minHeight: '36px', padding: '6px 12px', fontSize: '12px' }}>
+                        Batal
+                      </button>
+                      <button
+                        onClick={() => simpanIsiSurat(s.id)}
+                        disabled={menyimpanId === s.id}
+                        className="btn btn-primary btn-sm"
+                        style={{ minHeight: '36px', padding: '6px 12px', fontSize: '12px' }}
+                      >
+                        {menyimpanId === s.id ? 'Menyimpan...' : 'Simpan Draf'}
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  s.isiSurat && (
+                    <div style={{ border: '1px dashed var(--color-border-light)', padding: '10px 12px', borderRadius: 'var(--radius-md)', marginBottom: '12px', background: '#fafaf9' }}>
+                      <p style={{ fontSize: '11px', color: 'var(--color-primary)', margin: '0 0 4px', fontWeight: 600 }}>Draf Isi Surat (Telah Diedit):</p>
+                      <p style={{ fontSize: '12px', color: 'var(--color-text-secondary)', margin: 0, whiteSpace: 'pre-wrap', fontFamily: 'monospace', lineHeight: 1.4 }}>{s.isiSurat}</p>
+                    </div>
+                  )
                 )}
 
                 <div className="divider" />
@@ -114,7 +199,18 @@ export default function SuratAdmin() {
                   </p>
 
                   <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                    {/* Tombol Cetak PDF — muncul saat status SELESAI atau DIPROSES */}
+                    {/* Tombol Edit Isi */}
+                    {editingId !== s.id && (
+                      <button
+                        onClick={() => mulaiEdit(s)}
+                        className="btn btn-ghost btn-sm"
+                        style={{ fontSize: '12px', color: 'var(--color-text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}
+                      >
+                        <i className="ri-edit-line" /> {s.isiSurat ? 'Edit Draf' : 'Tulis/Edit'}
+                      </button>
+                    )}
+
+                    {/* Tombol Cetak PDF */}
                     {(s.status === 'SELESAI' || s.status === 'DIPROSES') && (
                       <Link
                         href={`/cetak/surat/${s.id}`}

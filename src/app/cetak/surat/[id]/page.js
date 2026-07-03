@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, use } from 'react'
+import Script from 'next/script'
 
 const ISI_TEMPLATE = {
   'Surat Keterangan Domisili': (nama, noRumah) =>
@@ -17,6 +18,7 @@ export default function CetakSurat({ params }) {
   const { id } = use(params)
   const [surat, setSurat] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [downloading, setDownloading] = useState(false)
 
   useEffect(() => {
     fetch(`/api/surat/${id}`)
@@ -40,22 +42,72 @@ export default function CetakSurat({ params }) {
 
   const tanggal = new Date(surat.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
   const templateFn = ISI_TEMPLATE[surat.jenisSurat] || ISI_TEMPLATE['Surat Pengantar RT']
-  const isiSurat = templateFn(surat.user.nama, surat.user.noRumah)
+  const isiSurat = surat.isiSurat || templateFn(surat.user.nama, surat.user.noRumah)
+
+
+  const handleDownloadPdf = () => {
+    if (typeof window === 'undefined' || !window.html2pdf) {
+      alert('Sistem sedang menyiapkan berkas PDF. Mohon coba sesaat lagi.')
+      return
+    }
+
+    setDownloading(true)
+    const element = document.getElementById('surat-content')
+    const namaClean = surat.user.nama.replace(/\s+/g, '_')
+    const jenisClean = surat.jenisSurat.replace(/\s+/g, '_')
+
+    const opt = {
+      margin:       [0.5, 0.5, 0.5, 0.5],
+      filename:     `Surat_${jenisClean}_${namaClean}.pdf`,
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2, useCORS: true, logging: false },
+      jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+    }
+
+    window.html2pdf()
+      .from(element)
+      .set(opt)
+      .save()
+      .then(() => setDownloading(false))
+      .catch(() => {
+        setDownloading(false)
+        alert('Gagal mengunduh berkas PDF')
+      })
+  }
 
   return (
     <>
-      {/* Print Button - hidden when printing */}
+      {/* Script to load html2pdf.js */}
+      <Script
+        src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"
+        strategy="lazyOnload"
+      />
+
+      {/* Action Button */}
       <div className="no-print" style={{
         position: 'fixed', bottom: '24px', right: '24px', zIndex: 100,
         display: 'flex', gap: '8px',
       }}>
-        <button onClick={() => window.print()} style={{
-          background: '#0f2d26', color: '#f5f0e8', border: 'none', borderRadius: '14px',
-          padding: '14px 28px', fontSize: '15px', fontWeight: 600, cursor: 'pointer',
-          display: 'flex', alignItems: 'center', gap: '8px',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
-        }}>
-          <i className="ri-printer-line" /> Cetak / Simpan PDF
+        <button
+          onClick={handleDownloadPdf}
+          disabled={downloading}
+          style={{
+            background: '#0f2d26', color: '#f5f0e8', border: 'none', borderRadius: '14px',
+            padding: '14px 28px', fontSize: '15px', fontWeight: 600, cursor: 'pointer',
+            display: 'flex', alignItems: 'center', gap: '8px',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
+            opacity: downloading ? 0.7 : 1,
+          }}
+        >
+          {downloading ? (
+            <>
+              <i className="ri-loader-4-line animate-spin" /> Mengunduh...
+            </>
+          ) : (
+            <>
+              <i className="ri-download-2-line" /> Unduh Berkas PDF
+            </>
+          )}
         </button>
       </div>
 
@@ -73,29 +125,32 @@ export default function CetakSurat({ params }) {
             <p style={{ fontSize: '12px', margin: '6px 0 0', color: '#444' }}>Sekretariat: Jl. Tirta Asri No. 1 — Kota Bandung, Jawa Barat</p>
           </div>
 
-          {/* Judul Surat */}
-          <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: 700, textDecoration: 'underline', margin: '0 0 4px' }}>
-              {surat.jenisSurat.toUpperCase()}
-            </h3>
-            <p style={{ fontSize: '12px', color: '#666', margin: 0 }}>No: {String(surat.id).padStart(3, '0')}/RT-TA/{new Date(surat.createdAt).getFullYear()}</p>
-          </div>
-
-          {/* Isi */}
-          <div style={{ fontSize: '14px', marginBottom: '16px', whiteSpace: 'pre-line' }}>
-            {isiSurat}
-          </div>
-
-          {/* Keterangan tambahan */}
-          {surat.keterangan && (
-            <div style={{ fontSize: '14px', marginBottom: '16px' }}>
-              <strong>Keterangan tambahan:</strong> {surat.keterangan}
+          {surat.isiSurat ? (
+            <div style={{ fontSize: '14px', marginBottom: '48px', whiteSpace: 'pre-line' }}>
+              {surat.isiSurat}
             </div>
-          )}
+          ) : (
+            <>
+              {/* Judul Surat */}
+              <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+                <h3 style={{ fontSize: '16px', fontWeight: 700, textDecoration: 'underline', margin: '0 0 4px' }}>
+                  {surat.jenisSurat.toUpperCase()}
+                </h3>
+                <p style={{ fontSize: '12px', color: '#666', margin: 0 }}>
+                  No: {String(surat.id).padStart(3, '0')}/RT-TA/{new Date(surat.createdAt).getFullYear()}
+                </p>
+              </div>
 
-          <p style={{ fontSize: '14px', marginBottom: '48px' }}>
-            Demikian surat ini dibuat dengan sebenarnya untuk dapat dipergunakan sebagaimana mestinya.
-          </p>
+              {/* Isi */}
+              <div style={{ fontSize: '14px', marginBottom: '16px', whiteSpace: 'pre-line' }}>
+                {isiSurat}
+              </div>
+
+              <p style={{ fontSize: '14px', marginBottom: '48px' }}>
+                Demikian surat ini dibuat dengan sebenarnya untuk dapat dipergunakan sebagaimana mestinya.
+              </p>
+            </>
+          )}
 
           {/* Tanda tangan */}
           <div style={{ display: 'flex', justifyContent: 'flex-end' }}>

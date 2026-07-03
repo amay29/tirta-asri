@@ -23,22 +23,33 @@ export default function Register() {
     e.preventDefault()
     setErrorMsg('')
 
-    if (pin.length < 6) {
-      setErrorMsg('PIN harus 6 digit angka')
-      return
-    }
-    if (pin !== pinKonfirmasi) {
-      setErrorMsg('PIN dan Konfirmasi PIN tidak sama')
-      return
-    }
-
-    setLoading(true)
-
     try {
+      const formEl = e.target.elements
+      const currentNama = (nama || (formEl && formEl.nama ? formEl.nama.value : '') || '').trim()
+      const currentNoRumah = (noRumah || (formEl && formEl.noRumah ? formEl.noRumah.value : '') || '').trim()
+      const currentPin = (pin || (formEl && formEl.pin ? formEl.pin.value : '') || '').trim()
+      const currentPinKonfirmasi = (pinKonfirmasi || (formEl && formEl.pinKonfirmasi ? formEl.pinKonfirmasi.value : '') || '').trim()
+
+      if (!currentNama || !currentNoRumah) {
+        setErrorMsg('Nama dan Nomor Rumah wajib diisi')
+        return
+      }
+
+      if (currentPin.length < 6) {
+        setErrorMsg('PIN harus 6 digit angka')
+        return
+      }
+      if (currentPin !== currentPinKonfirmasi) {
+        setErrorMsg('PIN dan Konfirmasi PIN tidak sama')
+        return
+      }
+
+      setLoading(true)
+
       const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nama: nama.trim(), noRumah: noRumah.trim(), pin }),
+        body: JSON.stringify({ nama: currentNama, noRumah: currentNoRumah, pin: currentPin }),
       })
 
       const contentType = res.headers.get('content-type')
@@ -184,7 +195,7 @@ export default function Register() {
                 )}
 
                 <button type="submit"
-                  disabled={loading || pin.length < 6 || pin !== pinKonfirmasi}
+                  disabled={loading}
                   className="btn btn-primary animate-fade-up delay-3"
                   style={{ width: '100%', justifyContent: 'center', marginTop: '16px', fontSize: '16px', minHeight: '52px' }}
                 >

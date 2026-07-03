@@ -12,10 +12,21 @@ export default function PengumumanAdmin() {
   const toast = useToast()
   const [pengumumanList, setPengumumanList] = useState([])
   const [loadingData, setLoadingData] = useState(true)
+  
+  // State untuk form buat baru
   const [judul, setJudul] = useState('')
   const [isi, setIsi] = useState('')
   const [penting, setPenting] = useState(false)
   const [sending, setSending] = useState(false)
+  
+  // State untuk edit pengumuman
+  const [editId, setEditId] = useState(null)
+  const [editJudul, setEditJudul] = useState('')
+  const [editIsi, setEditIsi] = useState('')
+  const [editPenting, setEditPenting] = useState(false)
+  const [updating, setUpdating] = useState(false)
+  
+  // State untuk delete
   const [deleteId, setDeleteId] = useState(null)
 
   const ambilData = async () => {
@@ -55,6 +66,37 @@ export default function PengumumanAdmin() {
     finally { setSending(false) }
   }
 
+  const handleMulaiEdit = (p) => {
+    setEditId(p.id)
+    setEditJudul(p.judul)
+    setEditIsi(p.isi)
+    setEditPenting(p.penting)
+  }
+
+  const handleUpdate = async (e) => {
+    e.preventDefault()
+    if (!editJudul || !editIsi) return
+    setUpdating(true)
+    try {
+      const res = await fetch('/api/pengumuman', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: editId, judul: editJudul, isi: editIsi, penting: editPenting }),
+      })
+      if (res.ok) {
+        toast.success('Pengumuman berhasil diperbarui!')
+        setEditId(null)
+        ambilData()
+      } else {
+        toast.error('Gagal memperbarui pengumuman')
+      }
+    } catch {
+      toast.error('Terjadi kesalahan koneksi')
+    } finally {
+      setUpdating(false)
+    }
+  }
+
   const handleHapus = async () => {
     if (!deleteId) return
     try {
@@ -81,7 +123,7 @@ export default function PengumumanAdmin() {
         <p className="section-subtitle">Kelola informasi untuk warga</p>
       </div>
 
-      {/* Form */}
+      {/* Form Buat */}
       <form onSubmit={handleBuat} className="card animate-fade-up delay-1" style={{ marginBottom: '16px' }}>
         <p style={{ fontSize: '15px', fontWeight: 600, color: 'var(--color-text)', margin: '0 0 14px' }}>
           <i className="ri-megaphone-line" style={{ marginRight: '6px', color: 'var(--color-accent)' }} />
@@ -111,19 +153,26 @@ export default function PengumumanAdmin() {
             {pengumumanList.map(p => (
               <div key={p.id} className={`card${p.penting ? ' announcement-card penting' : ''}`}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <div style={{ flex: 1 }}>
+                  <div style={{ flex: 1, paddingRight: '12px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                       {p.penting && <i className="ri-pushpin-fill" style={{ color: 'var(--color-accent)', fontSize: '14px' }} />}
                       <p style={{ fontSize: '15px', fontWeight: 600, color: 'var(--color-text)', margin: 0 }}>{p.judul}</p>
                     </div>
-                    <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', margin: '0 0 6px', lineHeight: 1.5 }}>{p.isi}</p>
+                    <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', margin: '0 0 6px', lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>{p.isi}</p>
                     <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', margin: 0 }}>
                       {new Date(p.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
                     </p>
                   </div>
-                  <button onClick={() => setDeleteId(p.id)} className="btn btn-ghost" style={{ color: 'var(--color-danger)', flexShrink: 0 }}>
-                    <i className="ri-delete-bin-line" />
-                  </button>
+                  <div style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
+                    {/* Tombol Edit */}
+                    <button onClick={() => handleMulaiEdit(p)} className="btn btn-ghost" style={{ color: 'var(--color-text-muted)', padding: '8px' }}>
+                      <i className="ri-edit-line" />
+                    </button>
+                    {/* Tombol Hapus */}
+                    <button onClick={() => setDeleteId(p.id)} className="btn btn-ghost" style={{ color: 'var(--color-danger)', padding: '8px' }}>
+                      <i className="ri-delete-bin-line" />
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -131,13 +180,38 @@ export default function PengumumanAdmin() {
         )}
       </div>
 
+      {/* Edit Modal */}
+      <Modal isOpen={!!editId} onClose={() => setEditId(null)} title="Edit Pengumuman" size="sm">
+        <form onSubmit={handleUpdate} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div>
+            <label className="form-label">Judul Pengumuman</label>
+            <input type="text" value={editJudul} onChange={(e) => setEditJudul(e.target.value)} className="input-field" required />
+          </div>
+          <div>
+            <label className="form-label">Isi Pengumuman</label>
+            <textarea value={editIsi} onChange={(e) => setEditIsi(e.target.value)} className="textarea-field" rows={4} required />
+          </div>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: 'var(--color-text-secondary)', cursor: 'pointer', margin: '4px 0' }}>
+            <input type="checkbox" checked={editPenting} onChange={(e) => setEditPenting(e.target.checked)} style={{ width: '18px', height: '18px', accentColor: 'var(--color-accent)' }} />
+            Tandai sebagai penting
+          </label>
+          <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+            <button type="button" onClick={() => setEditId(null)} className="btn btn-secondary btn-sm" style={{ flex: 1 }}>Batal</button>
+            <button type="submit" disabled={updating} className="btn btn-primary btn-sm" style={{ flex: 1, justifyContent: 'center' }}>
+              {updating ? 'Menyimpan...' : 'Simpan Perubahan'}
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Delete Modal */}
       <Modal isOpen={!!deleteId} onClose={() => setDeleteId(null)} title="Hapus Pengumuman?" size="sm">
-        <p style={{ fontSize: '14px', color: 'var(--color-text-secondary)', margin: '0 0 16px' }}>
+        <p style={{ fontSize: '14px', color: 'var(--color-text-secondary)', margin: '0 0 16px', lineHeight: 1.5 }}>
           Pengumuman yang dihapus tidak bisa dikembalikan.
         </p>
         <div style={{ display: 'flex', gap: '8px' }}>
           <button onClick={() => setDeleteId(null)} className="btn btn-secondary btn-sm" style={{ flex: 1 }}>Batal</button>
-          <button onClick={handleHapus} className="btn btn-danger btn-sm" style={{ flex: 1 }}>
+          <button onClick={handleHapus} className="btn btn-danger btn-sm" style={{ flex: 1, justifyContent: 'center' }}>
             <i className="ri-delete-bin-line" /> Hapus
           </button>
         </div>

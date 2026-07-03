@@ -45,6 +45,7 @@ model Surat {
   id         Int         @id @default(autoincrement())
   jenisSurat String
   keterangan String?
+  isiSurat   String?
   status     StatusSurat @default(PENDING)
   filePdf    String?
   createdAt  DateTime    @default(now())

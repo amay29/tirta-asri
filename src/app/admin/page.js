@@ -173,7 +173,7 @@ export default function AdminDashboard() {
         </p>
         <form onSubmit={handleTambahPengeluaran} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           <input type="text" placeholder="Keperluan pengeluaran" value={inputKeperluan} onChange={(e) => setInputKeperluan(e.target.value)} className="input-field" required />
-          <input type="number" inputMode="numeric" placeholder="Nominal (Rp)" value={inputNominal} onChange={(e) => setInputNominal(e.target.value)} className="input-field" min="0" required />
+          <input type="text" inputMode="numeric" placeholder="Nominal (Rp)" value={inputNominal} onChange={(e) => setInputNominal(e.target.value.replace(/\D/g, ''))} className="input-field" required />
           <div>
             <label className="form-label">Sumber Dana</label>
             <select value={sumberDana} onChange={(e) => setSumberDana(e.target.value)} className="select-field">

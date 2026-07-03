@@ -191,11 +191,11 @@ export default function KelolaWarga() {
           </div>
           <div>
             <label className="form-label">Tahun</label>
-            <input type="number" value={tahunBaru} onChange={(e) => setTahunBaru(e.target.value)} className="input-field" />
+            <input type="text" inputMode="numeric" value={tahunBaru} onChange={(e) => setTahunBaru(e.target.value.replace(/\D/g, ''))} className="input-field" />
           </div>
           <div>
             <label className="form-label">Jumlah (Rp)</label>
-            <input type="number" value={jumlahBaru} onChange={(e) => setJumlahBaru(e.target.value)} className="input-field" />
+            <input type="text" inputMode="numeric" value={jumlahBaru} onChange={(e) => setJumlahBaru(e.target.value.replace(/\D/g, ''))} className="input-field" />
           </div>
           <button onClick={handleBuatTagihan} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
             <i className="ri-check-line" /> Buat Tagihan
@@ -217,11 +217,11 @@ export default function KelolaWarga() {
           </div>
           <div>
             <label className="form-label">Tahun</label>
-            <input type="number" value={tahunBaru} onChange={(e) => setTahunBaru(e.target.value)} className="input-field" />
+            <input type="text" inputMode="numeric" value={tahunBaru} onChange={(e) => setTahunBaru(e.target.value.replace(/\D/g, ''))} className="input-field" />
           </div>
           <div>
             <label className="form-label">Jumlah per warga (Rp)</label>
-            <input type="number" value={jumlahBaru} onChange={(e) => setJumlahBaru(e.target.value)} className="input-field" />
+            <input type="text" inputMode="numeric" value={jumlahBaru} onChange={(e) => setJumlahBaru(e.target.value.replace(/\D/g, ''))} className="input-field" />
           </div>
           <button onClick={handleBulkTagihan} disabled={bulkLoading} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
             {bulkLoading ? <><div className="spinner" /> Memproses...</> : <><i className="ri-file-add-line" /> Buat untuk Semua Warga</>}

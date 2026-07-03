@@ -13,15 +13,33 @@ export default function Login() {
   const [errorMsg, setErrorMsg] = useState('')
 
   const handleLogin = async (e) => {
-    e.preventDefault()
+    if (e) {
+      e.preventDefault()
+    }
+    if (loading) return
     setErrorMsg('')
-    setLoading(true)
 
     try {
+      const formEl = e?.target?.elements || e?.currentTarget?.form?.elements || {}
+      const currentNoRumah = (noRumah || (formEl && formEl.noRumah ? formEl.noRumah.value : '') || '').trim()
+      const currentPin = (pin || (formEl && formEl.pin ? formEl.pin.value : '') || '').trim()
+
+      if (!currentNoRumah) {
+        setErrorMsg('Nomor rumah wajib diisi')
+        return
+      }
+
+      if (currentPin.length < 6) {
+        setErrorMsg('PIN harus terdiri dari 6 digit angka')
+        return
+      }
+
+      setLoading(true)
+
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ noRumah: noRumah.trim(), pin }),
+        body: JSON.stringify({ noRumah: currentNoRumah, pin: currentPin }),
       })
 
       const contentType = response.headers.get('content-type')
@@ -39,12 +57,19 @@ export default function Login() {
         return
       }
 
-      localStorage.setItem('tirtaAsriUser', JSON.stringify({ ...hasil.user, loginAt: Date.now() }))
+      const userData = JSON.stringify({ ...hasil.user, loginAt: Date.now() })
+      try {
+        localStorage.setItem('tirtaAsriUser', userData)
+      } catch (err) {
+        console.warn('LocalStorage write blocked:', err)
+      }
+      // Selalu set cookie sebagai backup yang lebih aman di mobile (terutama iOS/Safari)
+      document.cookie = `tirtaAsriUser=${encodeURIComponent(userData)}; path=/; max-age=86400; SameSite=Lax`
 
       if (hasil.user.role === 'ADMIN') {
-        router.push('/admin')
+        window.location.href = '/admin'
       } else {
-        router.push('/warga')
+        window.location.href = '/warga'
       }
     } catch (error) {
       console.error(error)
@@ -146,7 +171,7 @@ export default function Login() {
 
             <button
               type="submit"
-              disabled={loading || pin.length < 6}
+              disabled={loading}
               className="btn btn-primary animate-fade-up delay-3"
               style={{ width: '100%', justifyContent: 'center', marginTop: '20px', fontSize: '16px', minHeight: '52px' }}
             >

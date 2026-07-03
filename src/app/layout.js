@@ -19,18 +19,19 @@ export const metadata = {
   title: "Tirta Asri Residence — Portal Warga",
   description: "Portal layanan mandiri warga Tirta Asri Residence. Kelola iuran, pengajuan surat, dan informasi RT.",
   manifest: '/manifest.json',
-  themeColor: '#0f2d26',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
     title: 'Tirta Asri',
   },
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
-  },
+};
+
+export const viewport = {
+  themeColor: '#0f2d26',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function RootLayout({ children }) {

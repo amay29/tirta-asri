@@ -44,3 +44,24 @@ export async function DELETE(request) {
     return NextResponse.json({ pesan: 'Gagal menghapus pengumuman' }, { status: 500 })
   }
 }
+
+export async function PUT(request) {
+  try {
+    const body = await request.json()
+    const { id, judul, isi, penting } = body
+
+    if (!id || !judul || !isi) {
+      return NextResponse.json({ pesan: 'Data tidak lengkap' }, { status: 400 })
+    }
+
+    const updated = await prisma.pengumuman.update({
+      where: { id: parseInt(id) },
+      data: { judul, isi, penting: penting || false },
+    })
+
+    return NextResponse.json({ pesan: 'Pengumuman diperbarui', pengumuman: updated })
+  } catch (error) {
+    console.error(error)
+    return NextResponse.json({ pesan: 'Gagal memperbarui pengumuman' }, { status: 500 })
+  }
+}

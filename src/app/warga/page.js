@@ -163,8 +163,8 @@ export default function WargaDashboard() {
                   style={{ fontSize: '18px', color: p.penting ? 'var(--color-accent)' : 'var(--color-text-muted)', marginTop: '2px', flexShrink: 0 }} />
                 <div>
                   <p style={{ fontSize: '14px', fontWeight: 600, color: 'var(--color-text)', margin: '0 0 2px' }}>{p.judul}</p>
-                  <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', margin: 0, lineHeight: 1.5 }}>
-                    {p.isi.length > 100 ? p.isi.slice(0, 100) + '...' : p.isi}
+                  <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', margin: 0, lineHeight: 1.5, whiteSpace: 'pre-line' }}>
+                    {p.isi.length > 120 ? p.isi.slice(0, 120) + '...' : p.isi}
                   </p>
                 </div>
               </div>

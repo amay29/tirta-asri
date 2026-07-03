@@ -142,7 +142,7 @@ export default function SuratWarga() {
                   <StatusBadge status={s.status} />
                 </div>
                 {s.keterangan && (
-                  <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', margin: '0 0 8px', lineHeight: 1.5 }}>{s.keterangan}</p>
+                  <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', margin: '0 0 8px', lineHeight: 1.5, whiteSpace: 'pre-line' }}>{s.keterangan}</p>
                 )}
                 <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', margin: 0 }}>
                   <i className="ri-calendar-line" style={{ marginRight: '4px' }} />

@@ -49,29 +49,29 @@ export async function POST(request) {
 }
 
 // PUT /api/surat
-// Admin mengubah status surat. Body: { id, status, filePdf (opsional) }
-// status harus salah satu dari: PENDING, DIPROSES, SELESAI, DITOLAK
+// Admin mengubah status/isi surat. Body: { id, status, filePdf (opsional), isiSurat (opsional) }
 export async function PUT(request) {
   try {
     const body = await request.json()
-    const { id, status, filePdf } = body
+    const { id, status, filePdf, isiSurat } = body
 
     const statusValid = ['PENDING', 'DIPROSES', 'SELESAI', 'DITOLAK']
-    if (!statusValid.includes(status)) {
+    if (status && !statusValid.includes(status)) {
       return NextResponse.json({ pesan: 'Status tidak valid' }, { status: 400 })
     }
 
     const suratUpdate = await prisma.surat.update({
       where: { id: parseInt(id) },
       data: {
-        status,
-        ...(filePdf ? { filePdf } : {}),
+        ...(status ? { status } : {}),
+        ...(filePdf !== undefined ? { filePdf } : {}),
+        ...(isiSurat !== undefined ? { isiSurat } : {}),
       },
     })
 
     return NextResponse.json({ success: true, surat: suratUpdate })
   } catch (error) {
     console.error(error)
-    return NextResponse.json({ pesan: 'Gagal memperbarui status surat' }, { status: 500 })
+    return NextResponse.json({ pesan: 'Gagal memperbarui data surat' }, { status: 500 })
   }
 }
