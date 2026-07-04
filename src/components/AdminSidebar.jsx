@@ -8,6 +8,7 @@ const allNavItems = [
   { href: '/admin/warga', icon: 'ri-group-line', label: 'Kelola Warga', roles: ['ADMIN_IURAN', 'ADMIN_RT'] },
   { href: '/admin/surat', icon: 'ri-file-text-line', label: 'Surat Masuk', roles: ['ADMIN_RT'] },
   { href: '/admin/riwayat', icon: 'ri-history-line', label: 'Riwayat Dana', roles: ['ADMIN_IURAN', 'ADMIN_RT'] },
+  { href: '/admin/laporan', icon: 'ri-file-chart-line', label: 'Laporan Bulanan', roles: ['ADMIN_IURAN', 'ADMIN_RT'] },
   { href: '/admin/pengumuman', icon: 'ri-megaphone-line', label: 'Pengumuman', roles: ['ADMIN_IURAN', 'ADMIN_RT'] },
 ]
 

@@ -17,7 +17,7 @@ export async function GET() {
 export async function POST(request) {
   try {
     const body = await request.json()
-    const { judul, isi, penting, pembuatRole, pembuatNama } = body
+    const { judul, isi, penting, pembuatRole, pembuatNama, foto } = body
 
     if (!judul || !isi) {
       return NextResponse.json({ pesan: 'Judul dan isi wajib diisi' }, { status: 400 })
@@ -27,6 +27,7 @@ export async function POST(request) {
       data: {
         judul,
         isi,
+        foto: foto || null,
         penting: penting || false,
         pembuatRole: pembuatRole || null,
         pembuatNama: pembuatNama || null,
@@ -64,7 +65,7 @@ export async function DELETE(request) {
 export async function PUT(request) {
   try {
     const body = await request.json()
-    const { id, judul, isi, penting } = body
+    const { id, judul, isi, penting, foto } = body
 
     if (!id || !judul || !isi) {
       return NextResponse.json({ pesan: 'Data tidak lengkap' }, { status: 400 })
@@ -72,7 +73,12 @@ export async function PUT(request) {
 
     const updated = await prisma.pengumuman.update({
       where: { id: parseInt(id) },
-      data: { judul, isi, penting: penting || false },
+      data: { 
+        judul, 
+        isi, 
+        penting: penting || false,
+        ...(foto !== undefined ? { foto } : {})
+      },
     })
 
     return NextResponse.json({ pesan: 'Pengumuman diperbarui', pengumuman: updated })

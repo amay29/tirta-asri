@@ -2,8 +2,6 @@ import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import 'remixicon/fonts/remixicon.css';
 import Script from 'next/script';
-import PWAInstallButton from '@/components/PWAInstallButton';
-import NotificationButton from '@/components/NotificationButton';
 
 const fontInter = Inter({
   subsets: ['latin'],
@@ -46,8 +44,6 @@ export default function RootLayout({ children }) {
       </head>
       <body>
         {children}
-        <PWAInstallButton />
-        <NotificationButton />
         <Script id="sw-register" strategy="afterInteractive">{`
           if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('/sw.js').catch(() => {})

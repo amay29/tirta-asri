@@ -82,35 +82,28 @@ export default function NotificationButton() {
       onClick={handleSubscribe}
       disabled={subscribing}
       style={{
-        position: 'fixed',
-        bottom: '80px',
-        left: '16px',
-        zIndex: 9999,
         display: 'flex',
         alignItems: 'center',
+        justifyContent: 'center',
+        width: '100%',
         gap: '8px',
         padding: '12px 20px',
         background: 'linear-gradient(135deg, #c9a84c 0%, #a88832 100%)',
         color: '#18291f',
         border: 'none',
-        borderRadius: '50px',
+        borderRadius: '12px',
         fontSize: '13px',
         fontWeight: 600,
         cursor: 'pointer',
-        boxShadow: '0 4px 20px rgba(201, 168, 76, 0.3)',
-        animation: 'notif-pulse 2s ease-in-out infinite',
+        boxShadow: '0 4px 12px rgba(201, 168, 76, 0.2)',
         fontFamily: 'var(--font-inter, Inter, sans-serif)',
+        marginBottom: '16px'
       }}
       aria-label="Aktifkan notifikasi"
     >
       <i className="ri-notification-3-line" style={{ fontSize: '18px' }} />
-      {subscribing ? 'Mengaktifkan...' : 'Aktifkan Notifikasi'}
-      <style jsx>{`
-        @keyframes notif-pulse {
-          0%, 100% { box-shadow: 0 4px 20px rgba(201, 168, 76, 0.3); }
-          50% { box-shadow: 0 4px 30px rgba(201, 168, 76, 0.6); }
-        }
-      `}</style>
+      {subscribing ? 'Mengaktifkan...' : 'Aktifkan Notifikasi (Penting)'}
+
     </button>
   )
 }

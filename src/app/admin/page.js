@@ -7,6 +7,8 @@ import StatusBadge from '@/components/StatusBadge'
 import Modal from '@/components/Modal'
 import EmptyState from '@/components/EmptyState'
 import { SkeletonDashboard } from '@/components/Skeleton'
+import PWAInstallButton from '@/components/PWAInstallButton'
+import NotificationButton from '@/components/NotificationButton'
 import Link from 'next/link'
 
 function statusTampilan(t) {
@@ -148,6 +150,12 @@ export default function AdminDashboard() {
         <p className="section-subtitle">
           {new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
         </p>
+      </div>
+
+      {/* PWA & Notifications */}
+      <div className="animate-fade-up">
+        <PWAInstallButton />
+        <NotificationButton />
       </div>
 
       {/* Stats Grid */}

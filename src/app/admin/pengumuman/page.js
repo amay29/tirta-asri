@@ -21,6 +21,8 @@ export default function PengumumanAdmin() {
   // State untuk form buat baru
   const [judul, setJudul] = useState('')
   const [isi, setIsi] = useState('')
+  const [foto, setFoto] = useState(null)
+  const [fotoPreview, setFotoPreview] = useState('')
   const [penting, setPenting] = useState(false)
   const [sending, setSending] = useState(false)
   
@@ -28,6 +30,8 @@ export default function PengumumanAdmin() {
   const [editId, setEditId] = useState(null)
   const [editJudul, setEditJudul] = useState('')
   const [editIsi, setEditIsi] = useState('')
+  const [editFoto, setEditFoto] = useState(null)
+  const [editFotoPreview, setEditFotoPreview] = useState('')
   const [editPenting, setEditPenting] = useState(false)
   const [updating, setUpdating] = useState(false)
   
@@ -50,17 +54,47 @@ export default function PengumumanAdmin() {
 
   useEffect(() => { if (user) ambilData() }, [user])
 
+  const handleFotoChange = (e, isEdit = false) => {
+    const file = e.target.files[0]
+    if (!file) return
+    const preview = URL.createObjectURL(file)
+    if (isEdit) {
+      setEditFoto(file)
+      setEditFotoPreview(preview)
+    } else {
+      setFoto(file)
+      setFotoPreview(preview)
+    }
+  }
+
+  const uploadFoto = async (fileObj) => {
+    if (!fileObj) return null
+    const fd = new FormData()
+    fd.append('file', fileObj)
+    const res = await fetch('/api/upload', { method: 'POST', body: fd })
+    if (res.ok) {
+      const data = await res.json()
+      return data.url
+    }
+    return null
+  }
+
   const handleBuat = async (e) => {
     e.preventDefault()
     if (!judul || !isi) return
     setSending(true)
     try {
+      let uploadedUrl = null
+      if (foto) {
+        uploadedUrl = await uploadFoto(foto)
+      }
       const res = await fetch('/api/pengumuman', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           judul,
           isi,
+          foto: uploadedUrl,
           penting,
           pembuatRole: user.role,
           pembuatNama: user.nama,
@@ -69,6 +103,8 @@ export default function PengumumanAdmin() {
       if (res.ok) {
         setJudul('')
         setIsi('')
+        setFoto(null)
+        setFotoPreview('')
         setPenting(false)
         toast.success('Pengumuman berhasil dibuat!')
         ambilData()
@@ -82,6 +118,8 @@ export default function PengumumanAdmin() {
     setEditJudul(p.judul)
     setEditIsi(p.isi)
     setEditPenting(p.penting)
+    setEditFoto(null)
+    setEditFotoPreview(p.foto || '')
   }
 
   const handleUpdate = async (e) => {
@@ -89,10 +127,14 @@ export default function PengumumanAdmin() {
     if (!editJudul || !editIsi) return
     setUpdating(true)
     try {
+      let uploadedUrl = editFotoPreview
+      if (editFoto) {
+        uploadedUrl = await uploadFoto(editFoto)
+      }
       const res = await fetch('/api/pengumuman', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: editId, judul: editJudul, isi: editIsi, penting: editPenting }),
+        body: JSON.stringify({ id: editId, judul: editJudul, isi: editIsi, foto: uploadedUrl, penting: editPenting }),
       })
       if (res.ok) {
         toast.success('Pengumuman berhasil diperbarui!')
@@ -146,6 +188,17 @@ export default function PengumumanAdmin() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           <input type="text" placeholder="Judul pengumuman" value={judul} onChange={(e) => setJudul(e.target.value)} className="input-field" required />
           <textarea placeholder="Isi pengumuman..." value={isi} onChange={(e) => setIsi(e.target.value)} className="textarea-field" rows={3} required />
+          
+          <div>
+            <label className="form-label" style={{ fontSize: '13px' }}><i className="ri-image-add-line" /> Foto (Opsional)</label>
+            <input type="file" accept="image/*" onChange={(e) => handleFotoChange(e, false)} className="input-field" style={{ padding: '8px' }} />
+            {fotoPreview && (
+              <div style={{ marginTop: '8px', borderRadius: '8px', overflow: 'hidden', height: '120px', width: '200px', background: '#eee' }}>
+                <img src={fotoPreview} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              </div>
+            )}
+          </div>
+
           <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: 'var(--color-text-secondary)', cursor: 'pointer' }}>
             <input type="checkbox" checked={penting} onChange={(e) => setPenting(e.target.checked)} style={{ width: '18px', height: '18px', accentColor: 'var(--color-accent)' }} />
             Tandai sebagai penting
@@ -172,6 +225,11 @@ export default function PengumumanAdmin() {
                       {p.penting && <i className="ri-pushpin-fill" style={{ color: 'var(--color-accent)', fontSize: '14px' }} />}
                       <p style={{ fontSize: '15px', fontWeight: 600, color: 'var(--color-text)', margin: 0 }}>{p.judul}</p>
                     </div>
+                    {p.foto && (
+                      <div style={{ marginBottom: '8px', borderRadius: '8px', overflow: 'hidden', width: '120px', height: '80px', background: '#eee', flexShrink: 0 }}>
+                        <img src={p.foto} alt="Foto" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      </div>
+                    )}
                     <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', margin: '0 0 6px', lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>{p.isi}</p>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                       <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', margin: 0 }}>
@@ -219,6 +277,15 @@ export default function PengumumanAdmin() {
           <div>
             <label className="form-label">Isi Pengumuman</label>
             <textarea value={editIsi} onChange={(e) => setEditIsi(e.target.value)} className="textarea-field" rows={4} required />
+          </div>
+          <div>
+            <label className="form-label" style={{ fontSize: '13px' }}><i className="ri-image-add-line" /> Foto (Opsional)</label>
+            <input type="file" accept="image/*" onChange={(e) => handleFotoChange(e, true)} className="input-field" style={{ padding: '8px' }} />
+            {editFotoPreview && (
+              <div style={{ marginTop: '8px', borderRadius: '8px', overflow: 'hidden', height: '120px', width: '200px', background: '#eee' }}>
+                <img src={editFotoPreview} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              </div>
+            )}
           </div>
           <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: 'var(--color-text-secondary)', cursor: 'pointer', margin: '4px 0' }}>
             <input type="checkbox" checked={editPenting} onChange={(e) => setEditPenting(e.target.checked)} style={{ width: '18px', height: '18px', accentColor: 'var(--color-accent)' }} />

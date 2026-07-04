@@ -9,6 +9,8 @@ import EmptyState from '@/components/EmptyState'
 import { SkeletonDashboard } from '@/components/Skeleton'
 import { QRCodeSVG } from 'qrcode.react'
 import Link from 'next/link'
+import PWAInstallButton from '@/components/PWAInstallButton'
+import NotificationButton from '@/components/NotificationButton'
 
 function getGreeting() {
   const h = new Date().getHours()
@@ -153,6 +155,12 @@ export default function WargaDashboard() {
         <p className="section-subtitle">Blok {user.noRumah}</p>
       </div>
 
+      {/* PWA & Notifications */}
+      <div className="animate-fade-up">
+        <PWAInstallButton />
+        <NotificationButton />
+      </div>
+
       {/* Pengumuman */}
       {pengumuman.length > 0 && (
         <div className="animate-fade-up delay-1" style={{ marginBottom: '16px' }}>
@@ -179,6 +187,11 @@ export default function WargaDashboard() {
                       </span>
                     )}
                   </div>
+                  {p.foto && (
+                    <div style={{ margin: '6px 0', borderRadius: '8px', overflow: 'hidden', height: '100px', width: '160px', background: '#eee' }}>
+                      <img src={p.foto} alt="Foto Pengumuman" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    </div>
+                  )}
                   <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', margin: 0, lineHeight: 1.5, whiteSpace: 'pre-line' }}>
                     {p.isi.length > 120 ? p.isi.slice(0, 120) + '...' : p.isi}
                   </p>
