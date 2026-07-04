@@ -27,6 +27,7 @@ export default function KelolaWarga() {
   const [bulanBaru, setBulanBaru] = useState(BULAN_LIST[new Date().getMonth()])
   const [tahunBaru, setTahunBaru] = useState(new Date().getFullYear())
   const [jumlahBaru, setJumlahBaru] = useState('50000')
+  const [deadlineBaru, setDeadlineBaru] = useState('')
   const [showBulkModal, setShowBulkModal] = useState(false)
   const [bulkLoading, setBulkLoading] = useState(false)
 
@@ -52,7 +53,7 @@ export default function KelolaWarga() {
       const res = await fetch('/api/tagihan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: selectedWarga.id, bulan: bulanBaru, tahun: tahunBaru, jumlah: parseInt(jumlahBaru) }),
+        body: JSON.stringify({ userId: selectedWarga.id, bulan: bulanBaru, tahun: tahunBaru, jumlah: parseInt(jumlahBaru), deadline: deadlineBaru || null }),
       })
       if (res.ok) {
         toast.success(`Tagihan ${bulanBaru} untuk ${selectedWarga.nama} dibuat!`)
@@ -73,7 +74,7 @@ export default function KelolaWarga() {
         const res = await fetch('/api/tagihan', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId: w.id, bulan: bulanBaru, tahun: tahunBaru, jumlah: parseInt(jumlahBaru) }),
+          body: JSON.stringify({ userId: w.id, bulan: bulanBaru, tahun: tahunBaru, jumlah: parseInt(jumlahBaru), deadline: deadlineBaru || null }),
         })
         if (res.ok) berhasil++
       } catch {}
@@ -197,6 +198,10 @@ export default function KelolaWarga() {
             <label className="form-label">Jumlah (Rp)</label>
             <input type="text" inputMode="numeric" value={jumlahBaru} onChange={(e) => setJumlahBaru(e.target.value.replace(/\D/g, ''))} className="input-field" />
           </div>
+          <div>
+            <label className="form-label">Deadline Pembayaran <span style={{ fontWeight: 400, color: 'var(--color-text-muted)' }}>(opsional)</span></label>
+            <input type="date" value={deadlineBaru} onChange={(e) => setDeadlineBaru(e.target.value)} className="input-field" min={new Date().toISOString().split('T')[0]} />
+          </div>
           <button onClick={handleBuatTagihan} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
             <i className="ri-check-line" /> Buat Tagihan
           </button>
@@ -222,6 +227,10 @@ export default function KelolaWarga() {
           <div>
             <label className="form-label">Jumlah per warga (Rp)</label>
             <input type="text" inputMode="numeric" value={jumlahBaru} onChange={(e) => setJumlahBaru(e.target.value.replace(/\D/g, ''))} className="input-field" />
+          </div>
+          <div>
+            <label className="form-label">Deadline Pembayaran <span style={{ fontWeight: 400, color: 'var(--color-text-muted)' }}>(opsional)</span></label>
+            <input type="date" value={deadlineBaru} onChange={(e) => setDeadlineBaru(e.target.value)} className="input-field" min={new Date().toISOString().split('T')[0]} />
           </div>
           <button onClick={handleBulkTagihan} disabled={bulkLoading} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
             {bulkLoading ? <><div className="spinner" /> Memproses...</> : <><i className="ri-file-add-line" /> Buat untuk Semua Warga</>}

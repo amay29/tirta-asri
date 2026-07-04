@@ -299,10 +299,34 @@ export default function WargaDashboard() {
               const status = statusTampilan(t)
               return (
                 <div key={t.id} className="card animate-fade-up" style={{ animationDelay: `${0.15 + i * 0.05}s` }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                    <span style={{ fontFamily: 'var(--font-heading)', fontSize: '17px', fontWeight: 500, color: 'var(--color-text)' }}>
-                      {t.bulan} {t.tahun}
-                    </span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                    <div>
+                      <span style={{ fontFamily: 'var(--font-heading)', fontSize: '17px', fontWeight: 500, color: 'var(--color-text)', display: 'block' }}>
+                        {t.bulan} {t.tahun}
+                      </span>
+                      {t.deadline && status === 'Belum Bayar' && (() => {
+                        const dl = new Date(t.deadline)
+                        const now = new Date()
+                        const diffDays = Math.ceil((dl - now) / (1000 * 60 * 60 * 24))
+                        
+                        let dlColor = 'var(--color-text-muted)'
+                        let dlText = `Jatuh tempo: ${dl.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}`
+                        
+                        if (diffDays < 0) {
+                          dlColor = 'var(--color-danger)'
+                          dlText = 'Terlewat jatuh tempo'
+                        } else if (diffDays <= 3) {
+                          dlColor = 'var(--color-accent)'
+                          dlText = `Sisa ${diffDays} hari!`
+                        }
+                        
+                        return (
+                          <span style={{ fontSize: '11px', fontWeight: 600, color: dlColor, display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px' }}>
+                            <i className="ri-alarm-warning-line" /> {dlText}
+                          </span>
+                        )
+                      })()}
+                    </div>
                     <StatusBadge status={status} />
                   </div>
 

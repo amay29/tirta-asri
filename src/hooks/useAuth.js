@@ -1,78 +1,88 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 
 const SESSION_KEY = 'tirtaAsriUser'
 
+/**
+ * Membaca session user dari localStorage/cookie.
+ * Bisa dipanggil di mana saja tanpa hook.
+ */
+export function getSession() {
+  if (typeof window === 'undefined') return null
+
+  let raw = null
+  try {
+    raw = localStorage.getItem(SESSION_KEY)
+  } catch (err) {
+    // localStorage blocked (private mode, etc)
+  }
+
+  if (!raw) {
+    try {
+      const match = document.cookie.match(new RegExp('(^| )' + SESSION_KEY + '=([^;]+)'))
+      if (match) raw = decodeURIComponent(match[2])
+    } catch (err) {}
+  }
+
+  if (!raw) return null
+
+  try {
+    return JSON.parse(raw)
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Auth hook — membaca session sekali saat mount.
+ * Tidak menggunakan router sebagai dependency untuk menghindari re-render loop.
+ */
 export function useAuth(requiredRole = null) {
   const router = useRouter()
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
+  const redirectedRef = useRef(false)
 
-  const requiredRoleStr = typeof requiredRole === 'string' ? requiredRole : JSON.stringify(requiredRole)
+  // Stabilkan requiredRole agar tidak berubah referensi setiap render
+  const rolesRef = useRef(requiredRole)
+  rolesRef.current = requiredRole
+
+  const logout = useCallback(() => {
+    if (typeof window === 'undefined') return
+    try { localStorage.removeItem(SESSION_KEY) } catch {}
+    document.cookie = `${SESSION_KEY}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`
+    router.replace('/login')
+  }, [router])
 
   useEffect(() => {
-    // Jalankan hanya di client
+    // Hanya jalankan sekali di client saat mount
     if (typeof window === 'undefined') return
+    if (redirectedRef.current) return
 
-    try {
-      let raw = null
-      try {
-        raw = localStorage.getItem(SESSION_KEY)
-      } catch (err) {
-        console.warn('LocalStorage read blocked:', err)
-      }
+    const parsed = getSession()
 
-      if (!raw) {
-        // Fallback: Read from Cookie
-        const match = document.cookie.match(new RegExp('(^| )' + SESSION_KEY + '=([^;]+)'))
-        if (match) {
-          raw = decodeURIComponent(match[2])
-        }
-      }
+    if (!parsed) {
+      redirectedRef.current = true
+      router.replace('/login')
+      return
+    }
 
-      if (!raw) {
-        router.push('/login')
+    // Cek role
+    const required = rolesRef.current
+    if (required) {
+      const allowedRoles = Array.isArray(required) ? required : [required]
+      if (!allowedRoles.includes(parsed.role)) {
+        redirectedRef.current = true
+        router.replace('/login')
         return
       }
-
-      const parsed = JSON.parse(raw)
-
-      // Jika role tidak cocok, arahkan ke login
-      if (requiredRole) {
-        const allowedRoles = Array.isArray(requiredRole) ? requiredRole : [requiredRole]
-        if (!allowedRoles.includes(parsed.role)) {
-          router.push('/login')
-          return
-        }
-      }
-
-      // Hindari update state berulang jika data user tidak berubah secara nilai string (untuk cegah infinite loop)
-      setUser(prev => {
-        if (prev && JSON.stringify(prev) === JSON.stringify(parsed)) return prev
-        return parsed
-      })
-      setLoading(false)
-    } catch (e) {
-      console.error('useAuth: session error', e)
-      try {
-        localStorage.removeItem(SESSION_KEY)
-      } catch (err) {}
-      document.cookie = `${SESSION_KEY}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`
-      router.push('/login')
     }
-  }, [requiredRoleStr, router])
 
-  const logout = () => {
-    if (typeof window !== 'undefined') {
-      try {
-        localStorage.removeItem(SESSION_KEY)
-      } catch (err) {}
-      document.cookie = `${SESSION_KEY}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`
-    }
-    router.push('/login')
-  }
+    setUser(parsed)
+    setLoading(false)
+  }, [router]) // router dari next/navigation stabil (SPA)
 
   return { user, loading, logout }
 }

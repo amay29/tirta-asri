@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { sendPushToUser, sendPushToRole } from '@/lib/pushNotification'
 
 export async function POST(request) {
   try {
@@ -33,6 +34,16 @@ export async function POST(request) {
         // alur pembayaran masih simulasi manual yang dikonfirmasi admin.
       },
     })
+
+    // Kirim notifikasi push ke ADMIN_IURAN
+    try {
+      const tData = await prisma.tagihan.findUnique({ where: { id: tagihan.id }, include: { user: { select: { nama: true } } } })
+      await sendPushToRole(prisma, 'ADMIN_IURAN', {
+        title: '💳 Pembayaran Baru',
+        body: `${tData?.user?.nama || 'Warga'} membayar iuran Rp ${tagihan.jumlah.toLocaleString('id-ID')}`,
+        url: '/admin',
+      })
+    } catch {}
 
     return NextResponse.json({ pesan: 'Pengajuan pembayaran tercatat, menunggu konfirmasi RT', pembayaran: pembayaranBaru })
   } catch (error) {
@@ -75,6 +86,18 @@ export async function PUT(request) {
         data: { status: 'SUDAH_BAYAR' },
       }),
     ])
+
+    // Notifikasi ke warga bahwa pembayaran disetujui
+    try {
+      const tData = await prisma.tagihan.findUnique({ where: { id: pembayaran.tagihanId }, select: { userId: true, bulan: true, tahun: true } })
+      if (tData) {
+        await sendPushToUser(prisma, tData.userId, {
+          title: '✅ Pembayaran Disetujui',
+          body: `Iuran ${tData.bulan} ${tData.tahun} Anda telah dikonfirmasi`,
+          url: '/warga',
+        })
+      }
+    } catch {}
 
     return NextResponse.json({ success: true, pembayaran: hasil[0] })
   } catch (error) {

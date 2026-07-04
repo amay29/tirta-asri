@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { sendPushToRole } from '@/lib/pushNotification'
 
 export async function GET() {
   try {
@@ -31,6 +32,15 @@ export async function POST(request) {
         pembuatNama: pembuatNama || null,
       },
     })
+
+    // Kirim notifikasi push ke semua WARGA
+    try {
+      await sendPushToRole(prisma, 'WARGA', {
+        title: penting ? '📢 Pengumuman Penting!' : '📣 Pengumuman Baru',
+        body: judul,
+        url: '/warga',
+      })
+    } catch {}
 
     return NextResponse.json({ pesan: 'Pengumuman dibuat', pengumuman: pengumumanBaru })
   } catch (error) {

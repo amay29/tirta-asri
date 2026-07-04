@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { sendPushToUser, sendPushToRole } from '@/lib/pushNotification'
 
 export async function GET(request) {
   try {
@@ -41,6 +42,16 @@ export async function POST(request) {
       },
     })
 
+    // Kirim notifikasi push ke ADMIN_RT
+    try {
+      const user = await prisma.user.findUnique({ where: { id: parseInt(userId) }, select: { nama: true } })
+      await sendPushToRole(prisma, 'ADMIN_RT', {
+        title: '📄 Pengajuan Surat Baru',
+        body: `${user?.nama || 'Warga'} mengajukan ${jenisSurat}`,
+        url: '/admin/surat',
+      })
+    } catch {}
+
     return NextResponse.json({ pesan: 'Pengajuan surat terkirim', surat: suratBaru })
   } catch (error) {
     console.error(error)
@@ -68,6 +79,21 @@ export async function PUT(request) {
         ...(isiSurat !== undefined ? { isiSurat } : {}),
       },
     })
+
+    // Notifikasi ke warga jika status berubah
+    if (status) {
+      try {
+        const suratData = await prisma.surat.findUnique({ where: { id: parseInt(id) }, select: { userId: true, jenisSurat: true } })
+        const statusLabel = { DIPROSES: 'sedang diproses', SELESAI: 'sudah selesai', DITOLAK: 'ditolak' }
+        if (suratData && statusLabel[status]) {
+          await sendPushToUser(prisma, suratData.userId, {
+            title: '📄 Update Surat',
+            body: `${suratData.jenisSurat} Anda ${statusLabel[status]}`,
+            url: '/warga/surat',
+          })
+        }
+      } catch {}
+    }
 
     return NextResponse.json({ success: true, surat: suratUpdate })
   } catch (error) {

@@ -13,29 +13,26 @@ export default function Login() {
   const [errorMsg, setErrorMsg] = useState('')
 
   const handleLogin = async (e) => {
-    if (e) {
-      e.preventDefault()
-    }
+    e.preventDefault()
     if (loading) return
     setErrorMsg('')
 
+    const currentNoRumah = noRumah.trim()
+    const currentPin = pin.trim()
+
+    if (!currentNoRumah) {
+      setErrorMsg('Nomor rumah wajib diisi')
+      return
+    }
+
+    if (currentPin.length < 6) {
+      setErrorMsg('PIN harus terdiri dari 6 digit angka')
+      return
+    }
+
+    setLoading(true)
+
     try {
-      const formEl = e?.target?.elements || e?.currentTarget?.form?.elements || {}
-      const currentNoRumah = (noRumah || (formEl && formEl.noRumah ? formEl.noRumah.value : '') || '').trim()
-      const currentPin = (pin || (formEl && formEl.pin ? formEl.pin.value : '') || '').trim()
-
-      if (!currentNoRumah) {
-        setErrorMsg('Nomor rumah wajib diisi')
-        return
-      }
-
-      if (currentPin.length < 6) {
-        setErrorMsg('PIN harus terdiri dari 6 digit angka')
-        return
-      }
-
-      setLoading(true)
-
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -57,20 +54,32 @@ export default function Login() {
         return
       }
 
+      // Simpan session
       const userData = JSON.stringify({ ...hasil.user, loginAt: Date.now() })
       try {
         localStorage.setItem('tirtaAsriUser', userData)
       } catch (err) {
         console.warn('LocalStorage write blocked:', err)
       }
-      // Selalu set cookie sebagai backup yang lebih aman di mobile (terutama iOS/Safari)
       document.cookie = `tirtaAsriUser=${encodeURIComponent(userData)}; path=/; max-age=86400; SameSite=Lax`
 
-      if (['ADMIN_IURAN', 'ADMIN_RT'].includes(hasil.user.role)) {
-        window.location.href = '/admin'
-      } else {
-        window.location.href = '/warga'
+      // Bersihkan cache service worker lama agar tidak menghalangi redirect
+      if ('caches' in window) {
+        try {
+          const keys = await caches.keys()
+          await Promise.all(keys.map(k => caches.delete(k)))
+        } catch {}
       }
+
+      const target = ['ADMIN_IURAN', 'ADMIN_RT'].includes(hasil.user.role) ? '/admin' : '/warga'
+      
+      // Gunakan router.push agar navigasi berjalan sebagai SPA (tanpa full reload)
+      // Ini sangat penting untuk browser HP (terutama in-app browser) yang sering
+      // kehilangan localStorage/cookie saat full page reload.
+      setTimeout(() => {
+        router.push(target)
+      }, 100)
+
     } catch (error) {
       console.error(error)
       setErrorMsg('Tidak dapat terhubung ke server')
@@ -78,7 +87,6 @@ export default function Login() {
     }
   }
 
-  // Handle PIN input — angka saja, max 6 digit
   const handlePinChange = (e) => {
     const val = e.target.value.replace(/\D/g, '').slice(0, 6)
     setPin(val)
@@ -128,6 +136,7 @@ export default function Login() {
               </label>
               <input
                 id="noRumah"
+                name="noRumah"
                 type="text"
                 placeholder="Contoh: B17"
                 value={noRumah}
@@ -145,6 +154,7 @@ export default function Login() {
               </label>
               <input
                 id="pin"
+                name="pin"
                 type="password"
                 inputMode="numeric"
                 placeholder="● ● ● ● ● ●"

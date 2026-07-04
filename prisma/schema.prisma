@@ -7,15 +7,16 @@ datasource db {
 }
 
 model User {
-  id        Int       @id @default(autoincrement())
-  nama      String
-  email     String    @unique
-  password  String
-  noRumah   String
-  role      Role      @default(WARGA)
-  createdAt DateTime  @default(now())
-  surat     Surat[]
-  tagihan   Tagihan[]
+  id                Int                @id @default(autoincrement())
+  nama              String
+  email             String             @unique
+  password          String
+  noRumah           String
+  role              Role               @default(WARGA)
+  createdAt         DateTime           @default(now())
+  surat             Surat[]
+  tagihan           Tagihan[]
+  pushSubscriptions PushSubscription[]
 }
 
 model Tagihan {
@@ -23,6 +24,7 @@ model Tagihan {
   bulan      String
   tahun      Int
   jumlah     Int
+  deadline   DateTime?
   status     StatusTagihan @default(BELUM_BAYAR)
   createdAt  DateTime      @default(now())
   userId     Int
@@ -69,6 +71,16 @@ model Pengumuman {
   pembuatRole  String?
   pembuatNama  String?
   createdAt    DateTime @default(now())
+}
+
+model PushSubscription {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
 }
 
 enum Role {

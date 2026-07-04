@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { sendPushToUser } from '@/lib/pushNotification'
 
 export async function GET(request) {
   try {
@@ -25,7 +26,7 @@ export async function GET(request) {
 export async function POST(request) {
   try {
     const body = await request.json()
-    const { userId, bulan, tahun, jumlah } = body
+    const { userId, bulan, tahun, jumlah, deadline } = body
 
     if (!userId || !bulan || !tahun || !jumlah) {
       return NextResponse.json({ pesan: 'Data tidak lengkap' }, { status: 400 })
@@ -53,9 +54,21 @@ export async function POST(request) {
         bulan,
         tahun: parseInt(tahun),
         jumlah: parseInt(jumlah),
+        deadline: deadline ? new Date(deadline) : null,
         status: 'BELUM_BAYAR',
       },
     })
+
+    // Kirim notifikasi push ke warga bahwa ada tagihan baru
+    try {
+      const user = await prisma.user.findUnique({ where: { id: parseInt(userId) }, select: { nama: true } })
+      const deadlineStr = deadline ? ` (deadline: ${new Date(deadline).toLocaleDateString('id-ID', { day: 'numeric', month: 'long' })})` : ''
+      await sendPushToUser(prisma, parseInt(userId), {
+        title: '💰 Tagihan Iuran Baru',
+        body: `Iuran ${bulan} ${tahun} sebesar Rp ${parseInt(jumlah).toLocaleString('id-ID')}${deadlineStr}`,
+        url: '/warga',
+      })
+    } catch {}
 
     return NextResponse.json({ pesan: 'Tagihan dibuat', tagihan: tagihanBaru })
   } catch (error) {
