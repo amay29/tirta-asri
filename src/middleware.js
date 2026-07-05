@@ -7,8 +7,7 @@ export async function middleware(request) {
   // Rute API yang tidak perlu diproteksi
   if (
     pathname.startsWith('/api/auth/login') ||
-    pathname.startsWith('/api/auth/register') ||
-    pathname.startsWith('/api/upload')
+    pathname.startsWith('/api/auth/register')
   ) {
     return NextResponse.next()
   }

@@ -59,6 +59,8 @@ export async function POST(request) {
 // Body: { pembayaranId }
 export async function PUT(request) {
   try {
+    const role = request.headers.get('x-user-role')
+    const userId = request.headers.get('x-user-id')
     const body = await request.json()
     const { pembayaranId } = body
 
@@ -87,6 +89,22 @@ export async function PUT(request) {
         data: { status: 'SUDAH_BAYAR' },
       }),
     ])
+
+    // Catat ke histori aktivitas
+    try {
+      const tData = await prisma.tagihan.findUnique({ where: { id: pembayaran.tagihanId }, include: { user: true } })
+      if (tData && userId) {
+        await prisma.auditLog.create({
+          data: {
+            action: 'APPROVE_PEMBAYARAN',
+            userId: parseInt(userId),
+            details: `Menyetujui pembayaran iuran ${tData.bulan} ${tData.tahun} dari ${tData.user.nama}`,
+          }
+        })
+      }
+    } catch (e) {
+      console.error('AuditLog error:', e)
+    }
 
     // Notifikasi ke warga bahwa pembayaran disetujui
     try {

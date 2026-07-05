@@ -10,6 +10,7 @@ const allNavItems = [
   { href: '/admin/riwayat', icon: 'ri-history-line', label: 'Riwayat Dana', roles: ['ADMIN_IURAN', 'ADMIN_RT'] },
   { href: '/admin/laporan', icon: 'ri-file-chart-line', label: 'Laporan Bulanan', roles: ['ADMIN_IURAN', 'ADMIN_RT'] },
   { href: '/admin/pengumuman', icon: 'ri-megaphone-line', label: 'Pengumuman', roles: ['ADMIN_IURAN', 'ADMIN_RT'] },
+  { href: '/admin/aktivitas', icon: 'ri-radar-line', label: 'Aktivitas Admin', roles: ['ADMIN_IURAN', 'ADMIN_RT'] },
 ]
 
 const roleLabels = {

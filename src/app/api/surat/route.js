@@ -60,15 +60,25 @@ export async function POST(request) {
 }
 
 // PUT /api/surat
-// Admin mengubah status/isi surat. Body: { id, status, filePdf (opsional), isiSurat (opsional) }
+// Admin mengubah status/isi surat. Atau Warga mengubah jenisSurat/keterangan (jika PENDING).
+// Body: { id, status, filePdf, isiSurat, jenisSurat, keterangan }
 export async function PUT(request) {
   try {
     const body = await request.json()
-    const { id, status, filePdf, isiSurat } = body
+    const { id, status, filePdf, isiSurat, jenisSurat, keterangan } = body
 
     const statusValid = ['PENDING', 'DIPROSES', 'SELESAI', 'DITOLAK']
     if (status && !statusValid.includes(status)) {
       return NextResponse.json({ pesan: 'Status tidak valid' }, { status: 400 })
+    }
+
+    // Cek surat saat ini
+    const currentSurat = await prisma.surat.findUnique({ where: { id: parseInt(id) } })
+    if (!currentSurat) return NextResponse.json({ pesan: 'Surat tidak ditemukan' }, { status: 404 })
+
+    // Jika warga mencoba mengedit, pastikan status masih PENDING
+    if ((jenisSurat || keterangan !== undefined) && currentSurat.status !== 'PENDING') {
+      return NextResponse.json({ pesan: 'Surat yang sudah diproses tidak bisa diedit' }, { status: 403 })
     }
 
     const suratUpdate = await prisma.surat.update({
@@ -77,6 +87,8 @@ export async function PUT(request) {
         ...(status ? { status } : {}),
         ...(filePdf !== undefined ? { filePdf } : {}),
         ...(isiSurat !== undefined ? { isiSurat } : {}),
+        ...(jenisSurat ? { jenisSurat } : {}),
+        ...(keterangan !== undefined ? { keterangan } : {}),
       },
     })
 
@@ -99,5 +111,36 @@ export async function PUT(request) {
   } catch (error) {
     console.error(error)
     return NextResponse.json({ pesan: 'Gagal memperbarui data surat' }, { status: 500 })
+  }
+}
+
+// DELETE /api/surat
+// Warga membatalkan/menghapus pengajuan surat yang masih PENDING. Body: { id, userId }
+export async function DELETE(request) {
+  try {
+    const body = await request.json()
+    const { id, userId } = body
+
+    if (!id || !userId) {
+      return NextResponse.json({ pesan: 'Data tidak lengkap' }, { status: 400 })
+    }
+
+    const currentSurat = await prisma.surat.findUnique({ where: { id: parseInt(id) } })
+    if (!currentSurat) return NextResponse.json({ pesan: 'Surat tidak ditemukan' }, { status: 404 })
+
+    if (currentSurat.userId !== parseInt(userId)) {
+      return NextResponse.json({ pesan: 'Tidak memiliki akses' }, { status: 403 })
+    }
+
+    if (currentSurat.status !== 'PENDING') {
+      return NextResponse.json({ pesan: 'Hanya surat dengan status Menunggu yang bisa dibatalkan' }, { status: 403 })
+    }
+
+    await prisma.surat.delete({ where: { id: parseInt(id) } })
+
+    return NextResponse.json({ pesan: 'Pengajuan surat dibatalkan' })
+  } catch (error) {
+    console.error(error)
+    return NextResponse.json({ pesan: 'Gagal membatalkan surat' }, { status: 500 })
   }
 }

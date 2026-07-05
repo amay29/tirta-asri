@@ -52,8 +52,24 @@ export async function POST(request) {
 
 export async function DELETE(request) {
   try {
+    const role = request.headers.get('x-user-role')
+    const userId = request.headers.get('x-user-id')
+
     const body = await request.json()
     const { id } = body
+
+    const current = await prisma.pengumuman.findUnique({ where: { id: parseInt(id) } })
+    if (!current) {
+      return NextResponse.json({ pesan: 'Pengumuman tidak ditemukan' }, { status: 404 })
+    }
+
+    if (role === 'ADMIN_IURAN') {
+      const u = await prisma.user.findUnique({ where: { id: parseInt(userId) } })
+      if (current.pembuatRole !== 'ADMIN_IURAN' || current.pembuatNama !== u?.nama) {
+        return NextResponse.json({ pesan: 'Hanya bisa menghapus pengumuman Anda sendiri' }, { status: 403 })
+      }
+    }
+
     await prisma.pengumuman.delete({ where: { id: parseInt(id) } })
     return NextResponse.json({ success: true })
   } catch (error) {
@@ -64,11 +80,26 @@ export async function DELETE(request) {
 
 export async function PUT(request) {
   try {
+    const role = request.headers.get('x-user-role')
+    const userId = request.headers.get('x-user-id')
+
     const body = await request.json()
     const { id, judul, isi, penting, foto } = body
 
     if (!id || !judul || !isi) {
       return NextResponse.json({ pesan: 'Data tidak lengkap' }, { status: 400 })
+    }
+
+    const current = await prisma.pengumuman.findUnique({ where: { id: parseInt(id) } })
+    if (!current) {
+      return NextResponse.json({ pesan: 'Pengumuman tidak ditemukan' }, { status: 404 })
+    }
+
+    if (role === 'ADMIN_IURAN') {
+      const u = await prisma.user.findUnique({ where: { id: parseInt(userId) } })
+      if (current.pembuatRole !== 'ADMIN_IURAN' || current.pembuatNama !== u?.nama) {
+        return NextResponse.json({ pesan: 'Hanya bisa mengedit pengumuman Anda sendiri' }, { status: 403 })
+      }
     }
 
     const updated = await prisma.pengumuman.update({

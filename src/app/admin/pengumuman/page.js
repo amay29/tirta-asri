@@ -37,6 +37,17 @@ export default function PengumumanAdmin() {
   
   // State untuk delete
   const [deleteId, setDeleteId] = useState(null)
+  
+  // State untuk foto fullscreen
+  const [fullscreenFoto, setFullscreenFoto] = useState(null)
+
+  const canModify = (p) => {
+    if (user?.role === 'ADMIN_RT') return true
+    if (user?.role === 'ADMIN_IURAN') {
+      return p.pembuatRole === 'ADMIN_IURAN' && p.pembuatNama === user?.nama
+    }
+    return false
+  }
 
   const ambilData = async () => {
     try {
@@ -226,7 +237,10 @@ export default function PengumumanAdmin() {
                       <p style={{ fontSize: '15px', fontWeight: 600, color: 'var(--color-text)', margin: 0 }}>{p.judul}</p>
                     </div>
                     {p.foto && (
-                      <div style={{ marginBottom: '8px', borderRadius: '8px', overflow: 'hidden', width: '120px', height: '80px', background: '#eee', flexShrink: 0 }}>
+                      <div 
+                        onClick={() => setFullscreenFoto(p.foto)}
+                        style={{ marginBottom: '8px', borderRadius: '8px', overflow: 'hidden', width: '120px', height: '80px', background: '#eee', flexShrink: 0, cursor: 'pointer' }}
+                      >
                         <img src={p.foto} alt="Foto" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       </div>
                     )}
@@ -250,16 +264,18 @@ export default function PengumumanAdmin() {
                       )}
                     </div>
                   </div>
-                  <div style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
-                    {/* Tombol Edit */}
-                    <button onClick={() => handleMulaiEdit(p)} className="btn btn-ghost" style={{ color: 'var(--color-text-muted)', padding: '8px' }}>
-                      <i className="ri-edit-line" />
-                    </button>
-                    {/* Tombol Hapus */}
-                    <button onClick={() => setDeleteId(p.id)} className="btn btn-ghost" style={{ color: 'var(--color-danger)', padding: '8px' }}>
-                      <i className="ri-delete-bin-line" />
-                    </button>
-                  </div>
+                  {canModify(p) && (
+                    <div style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
+                      {/* Tombol Edit */}
+                      <button onClick={() => handleMulaiEdit(p)} className="btn btn-ghost" style={{ color: 'var(--color-text-muted)', padding: '8px' }}>
+                        <i className="ri-edit-line" />
+                      </button>
+                      {/* Tombol Hapus */}
+                      <button onClick={() => setDeleteId(p.id)} className="btn btn-ghost" style={{ color: 'var(--color-danger)', padding: '8px' }}>
+                        <i className="ri-delete-bin-line" />
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
@@ -311,6 +327,16 @@ export default function PengumumanAdmin() {
             <i className="ri-delete-bin-line" /> Hapus
           </button>
         </div>
+      </Modal>
+
+      {/* Fullscreen Image Modal */}
+      <Modal isOpen={!!fullscreenFoto} onClose={() => setFullscreenFoto(null)} title="Foto Pengumuman" size="lg">
+        {fullscreenFoto && (
+          <img src={fullscreenFoto} alt="Fullscreen" style={{ width: '100%', height: 'auto', borderRadius: '8px' }} />
+        )}
+        <button onClick={() => setFullscreenFoto(null)} className="btn btn-secondary" style={{ width: '100%', marginTop: '16px', justifyContent: 'center' }}>
+          Tutup
+        </button>
       </Modal>
     </>
   )

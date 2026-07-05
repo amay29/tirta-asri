@@ -38,12 +38,13 @@ export default function WargaDashboard() {
   const [selectedTagihan, setSelectedTagihan] = useState(null)
   const [metodePilihan, setMetodePilihan] = useState('QRIS Gateway')
   const [paymentStep, setPaymentStep] = useState('select')
-  const [showKasDetail, setShowKasDetail] = useState(false)
   const [countdown, setCountdown] = useState(10)
   const [showPinModal, setShowPinModal] = useState(false)
   const [oldPin, setOldPin] = useState('')
   const [newPin, setNewPin] = useState('')
   const [confirmPin, setConfirmPin] = useState('')
+  const [pinProses, setPinProses] = useState(false)
+  const [fullscreenFoto, setFullscreenFoto] = useState(null)
   const [pinLoading, setPinLoading] = useState(false)
   const [showPin, setShowPin] = useState(false)
   const [buktiFile, setBuktiFile] = useState(null)
@@ -74,8 +75,6 @@ export default function WargaDashboard() {
           totalMasuk: masuk,
           totalKeluar: keluar,
           saldo: masuk - keluar,
-          jumlahWargaLunas: lunas.length,
-          pengeluaranList: allPengeluaran.slice(0, 8),
         })
       }
     } catch (err) {
@@ -250,11 +249,14 @@ export default function WargaDashboard() {
                     )}
                   </div>
                   {p.foto && (
-                    <div style={{ margin: '6px 0', borderRadius: '8px', overflow: 'hidden', height: '100px', width: '160px', background: '#eee' }}>
+                    <div 
+                      onClick={() => setFullscreenFoto(p.foto)}
+                      style={{ marginBottom: '8px', borderRadius: '8px', overflow: 'hidden', height: '140px', background: '#eee', cursor: 'pointer' }}
+                    >
                       <img src={p.foto} alt="Foto Pengumuman" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     </div>
                   )}
-                  <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', margin: 0, lineHeight: 1.5, whiteSpace: 'pre-line' }}>
+                  <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', margin: '0 0 6px', lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>
                     {p.isi.length > 120 ? p.isi.slice(0, 120) + '...' : p.isi}
                   </p>
                 </div>
@@ -275,66 +277,24 @@ export default function WargaDashboard() {
 
       {/* === TRANSPARANSI KAS RT === */}
       {kasData && (
-        <div className="card animate-fade-up delay-2" style={{ marginBottom: '16px' }}>
-          <div
-            onClick={() => setShowKasDetail(!showKasDetail)}
-            style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-          >
+        <div className="card animate-fade-up delay-1" style={{ marginBottom: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+            <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#e0f0ea', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <i className="ri-safe-2-line" style={{ fontSize: '20px', color: '#1a6048' }} />
+            </div>
             <div>
-              <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', margin: '0 0 2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <i className="ri-shield-check-line" style={{ color: 'var(--color-primary)' }} />
+              <p style={{ fontSize: '15px', fontWeight: 600, color: 'var(--color-text)', margin: 0 }}>
                 Transparansi Kas RT
               </p>
-              <p style={{ fontSize: '20px', fontWeight: 600, color: 'var(--color-text)', margin: 0 }}>
+              <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', margin: '2px 0 0' }}>
                 Rp {kasData.saldo.toLocaleString('id-ID')}
               </p>
             </div>
-            <i className={`ri-arrow-${showKasDetail ? 'up' : 'down'}-s-line`}
-              style={{ fontSize: '20px', color: 'var(--color-text-muted)' }} />
           </div>
-
-          {showKasDetail && (
-            <div style={{ marginTop: '14px', paddingTop: '14px', borderTop: '1px dashed var(--color-border-light)' }}>
-              <div style={{ display: 'flex', gap: '12px', marginBottom: '12px' }}>
-                <div style={{ flex: 1, background: 'var(--color-success-bg)', borderRadius: 'var(--radius-md)', padding: '10px 12px' }}>
-                  <p style={{ fontSize: '11px', color: 'var(--color-success)', margin: '0 0 2px' }}>Pemasukan</p>
-                  <p style={{ fontSize: '15px', fontWeight: 600, color: 'var(--color-success)', margin: 0 }}>
-                    Rp {kasData.totalMasuk.toLocaleString('id-ID')}
-                  </p>
-                  <p style={{ fontSize: '10px', color: 'var(--color-text-muted)', margin: '2px 0 0' }}>
-                    {kasData.jumlahWargaLunas} pembayaran
-                  </p>
-                </div>
-                <div style={{ flex: 1, background: 'var(--color-danger-bg)', borderRadius: 'var(--radius-md)', padding: '10px 12px' }}>
-                  <p style={{ fontSize: '11px', color: 'var(--color-danger)', margin: '0 0 2px' }}>Pengeluaran</p>
-                  <p style={{ fontSize: '15px', fontWeight: 600, color: 'var(--color-danger)', margin: 0 }}>
-                    Rp {kasData.totalKeluar.toLocaleString('id-ID')}
-                  </p>
-                </div>
-              </div>
-
-              {kasData.pengeluaranList.length > 0 && (
-                <>
-                  <p style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-secondary)', margin: '0 0 8px' }}>
-                    Catatan Pengeluaran Terakhir
-                  </p>
-                  {kasData.pengeluaranList.map(exp => (
-                    <div key={exp.id} className="card-flat" style={{ marginBottom: '4px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div>
-                        <p style={{ fontSize: '13px', color: 'var(--color-text)', margin: 0 }}>{exp.keperluan}</p>
-                        <p style={{ fontSize: '10px', color: 'var(--color-text-muted)', margin: '1px 0 0' }}>
-                          {new Date(exp.createdAt).toLocaleDateString('id-ID')}
-                        </p>
-                      </div>
-                      <p style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-danger)', margin: 0 }}>
-                        - Rp {exp.nominal.toLocaleString('id-ID')}
-                      </p>
-                    </div>
-                  ))}
-                </>
-              )}
-            </div>
-          )}
+          
+          <Link href="/warga/kas" className="btn btn-outline" style={{ width: '100%', justifyContent: 'center' }}>
+            Lihat Rincian per Bulan
+          </Link>
         </div>
       )}
 
@@ -562,29 +522,41 @@ export default function WargaDashboard() {
 
       {/* Ubah PIN Modal */}
       <Modal isOpen={showPinModal} onClose={() => setShowPinModal(false)} title="Ubah PIN" size="sm">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '-10px' }}>
-            <button type="button" onClick={() => setShowPin(!showPin)} className="btn btn-ghost btn-sm" style={{ padding: '0 8px', fontSize: '13px' }}>
-              <i className={showPin ? 'ri-eye-off-line' : 'ri-eye-line'} style={{ marginRight: '4px' }} />
-              {showPin ? 'Sembunyikan PIN' : 'Lihat PIN'}
+        <form>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '-10px' }}>
+              <button type="button" onClick={() => setShowPin(!showPin)} className="btn btn-ghost btn-sm" style={{ padding: '0 8px', fontSize: '13px' }}>
+                <i className={showPin ? 'ri-eye-off-line' : 'ri-eye-line'} style={{ marginRight: '4px' }} />
+                {showPin ? 'Sembunyikan PIN' : 'Lihat PIN'}
+              </button>
+            </div>
+            <div>
+              <label className="form-label" style={{ fontSize: '14px' }}>PIN Lama</label>
+              <input type={showPin ? 'text' : 'password'} value={oldPin} onChange={e => setOldPin(e.target.value)} className="input-field" placeholder="Masukkan PIN lama" maxLength={6} />
+            </div>
+            <div>
+              <label className="form-label" style={{ fontSize: '14px' }}>PIN Baru</label>
+              <input type={showPin ? 'text' : 'password'} value={newPin} onChange={e => setNewPin(e.target.value)} className="input-field" placeholder="Masukkan PIN baru" maxLength={6} />
+            </div>
+            <div>
+              <label className="form-label" style={{ fontSize: '14px' }}>Konfirmasi PIN Baru</label>
+              <input type={showPin ? 'text' : 'password'} value={confirmPin} onChange={e => setConfirmPin(e.target.value)} className="input-field" placeholder="Ketik ulang PIN baru" maxLength={6} />
+            </div>
+            <button onClick={handleChangePin} disabled={pinLoading || !oldPin || !newPin || !confirmPin} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
+              {pinLoading ? 'Memproses...' : 'Simpan PIN Baru'}
             </button>
           </div>
-          <div>
-            <label className="form-label" style={{ fontSize: '14px' }}>PIN Lama</label>
-            <input type={showPin ? 'text' : 'password'} value={oldPin} onChange={e => setOldPin(e.target.value)} className="input-field" placeholder="Masukkan PIN lama" maxLength={6} />
-          </div>
-          <div>
-            <label className="form-label" style={{ fontSize: '14px' }}>PIN Baru</label>
-            <input type={showPin ? 'text' : 'password'} value={newPin} onChange={e => setNewPin(e.target.value)} className="input-field" placeholder="Masukkan PIN baru" maxLength={6} />
-          </div>
-          <div>
-            <label className="form-label" style={{ fontSize: '14px' }}>Konfirmasi PIN Baru</label>
-            <input type={showPin ? 'text' : 'password'} value={confirmPin} onChange={e => setConfirmPin(e.target.value)} className="input-field" placeholder="Ketik ulang PIN baru" maxLength={6} />
-          </div>
-          <button onClick={handleChangePin} disabled={pinLoading || !oldPin || !newPin || !confirmPin} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
-            {pinLoading ? 'Memproses...' : 'Simpan PIN Baru'}
-          </button>
-        </div>
+        </form>
+      </Modal>
+
+      {/* Fullscreen Image Modal */}
+      <Modal isOpen={!!fullscreenFoto} onClose={() => setFullscreenFoto(null)} title="Foto Pengumuman" size="lg">
+        {fullscreenFoto && (
+          <img src={fullscreenFoto} alt="Fullscreen" style={{ width: '100%', height: 'auto', borderRadius: '8px' }} />
+        )}
+        <button onClick={() => setFullscreenFoto(null)} className="btn btn-secondary" style={{ width: '100%', marginTop: '16px', justifyContent: 'center' }}>
+          Tutup
+        </button>
       </Modal>
     </>
   )

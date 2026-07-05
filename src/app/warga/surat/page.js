@@ -26,6 +26,14 @@ export default function SuratWarga() {
   const [mengirim, setMengirim] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
 
+  // Edit / Batal state
+  const [showEdit, setShowEdit] = useState(false)
+  const [showBatal, setShowBatal] = useState(false)
+  const [selectedSurat, setSelectedSurat] = useState(null)
+  const [editJenisSurat, setEditJenisSurat] = useState('')
+  const [editKeterangan, setEditKeterangan] = useState('')
+  const [memproses, setMemproses] = useState(false)
+
   const ambilSurat = async () => {
     if (!user) return
     try {
@@ -65,6 +73,52 @@ export default function SuratWarga() {
       toast.error('Gagal mengirim pengajuan')
     } finally {
       setMengirim(false)
+    }
+  }
+
+  const handleEdit = async () => {
+    setMemproses(true)
+    try {
+      const res = await fetch('/api/surat', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: selectedSurat.id, jenisSurat: editJenisSurat, keterangan: editKeterangan }),
+      })
+      if (res.ok) {
+        toast.success('Pengajuan surat berhasil diubah')
+        setShowEdit(false)
+        ambilSurat()
+      } else {
+        const d = await res.json()
+        toast.error(d.pesan || 'Gagal mengubah surat')
+      }
+    } catch {
+      toast.error('Gagal memproses')
+    } finally {
+      setMemproses(false)
+    }
+  }
+
+  const handleBatal = async () => {
+    setMemproses(true)
+    try {
+      const res = await fetch('/api/surat', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: selectedSurat.id, userId: user.id }),
+      })
+      if (res.ok) {
+        toast.success('Pengajuan surat dibatalkan')
+        setShowBatal(false)
+        ambilSurat()
+      } else {
+        const d = await res.json()
+        toast.error(d.pesan || 'Gagal membatalkan surat')
+      }
+    } catch {
+      toast.error('Gagal memproses')
+    } finally {
+      setMemproses(false)
     }
   }
 
@@ -154,6 +208,16 @@ export default function SuratWarga() {
                     <i className="ri-printer-line" /> Lihat & Cetak Surat
                   </a>
                 )}
+                {s.status === 'PENDING' && (
+                  <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
+                    <button onClick={() => { setSelectedSurat(s); setEditJenisSurat(s.jenisSurat); setEditKeterangan(s.keterangan || ''); setShowEdit(true) }} className="btn btn-outline btn-sm" style={{ flex: 1, justifyContent: 'center' }}>
+                      <i className="ri-edit-line" /> Ubah
+                    </button>
+                    <button onClick={() => { setSelectedSurat(s); setShowBatal(true) }} className="btn btn-secondary btn-sm" style={{ flex: 1, justifyContent: 'center', color: 'var(--color-danger)' }}>
+                      <i className="ri-delete-bin-line" /> Batalkan
+                    </button>
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -173,6 +237,42 @@ export default function SuratWarga() {
           <button onClick={() => setShowConfirm(false)} className="btn btn-secondary btn-sm" style={{ flex: 1 }}>Batal</button>
           <button onClick={handleAjukan} className="btn btn-primary btn-sm" style={{ flex: 1 }}>
             <i className="ri-check-line" /> Kirim
+          </button>
+        </div>
+      </Modal>
+
+      {/* Edit Modal */}
+      <Modal isOpen={showEdit} onClose={() => setShowEdit(false)} title="Ubah Pengajuan Surat" size="sm">
+        <div style={{ marginBottom: '14px' }}>
+          <label className="form-label">Jenis Surat</label>
+          <select value={editJenisSurat} onChange={(e) => setEditJenisSurat(e.target.value)} className="select-field">
+            {JENIS_SURAT.map(j => <option key={j} value={j}>{j}</option>)}
+          </select>
+        </div>
+        <div style={{ marginBottom: '16px' }}>
+          <label className="form-label">Keterangan (opsional)</label>
+          <textarea
+            value={editKeterangan}
+            onChange={(e) => setEditKeterangan(e.target.value)}
+            className="textarea-field"
+            placeholder="Jelaskan keperluan surat ini..."
+            rows={3}
+          />
+        </div>
+        <button onClick={handleEdit} disabled={memproses} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
+          {memproses ? 'Memproses...' : 'Simpan Perubahan'}
+        </button>
+      </Modal>
+
+      {/* Batal Modal */}
+      <Modal isOpen={showBatal} onClose={() => setShowBatal(false)} title="Batalkan Pengajuan" size="sm">
+        <p style={{ fontSize: '14px', color: 'var(--color-text-secondary)', margin: '0 0 16px', lineHeight: 1.5 }}>
+          Apakah Anda yakin ingin membatalkan pengajuan <strong>{selectedSurat?.jenisSurat}</strong>? Pengajuan yang dibatalkan akan dihapus dan tidak dapat dikembalikan.
+        </p>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button onClick={() => setShowBatal(false)} className="btn btn-secondary" style={{ flex: 1 }}>Tidak</button>
+          <button onClick={handleBatal} disabled={memproses} className="btn btn-danger" style={{ flex: 1 }}>
+            {memproses ? 'Memproses...' : 'Ya, Batalkan'}
           </button>
         </div>
       </Modal>

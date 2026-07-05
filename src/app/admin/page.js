@@ -36,7 +36,11 @@ export default function AdminDashboard() {
   const [inputKeperluan, setInputKeperluan] = useState('')
   const [inputNominal, setInputNominal] = useState('')
   const [sumberDana, setSumberDana] = useState('Cash')
+  const [showFormTagihan, setShowFormTagihan] = useState(false)
   const [confirmApprove, setConfirmApprove] = useState(null)
+  const [cancelT, setCancelT] = useState(null)
+  const [cancelReason, setCancelReason] = useState('')
+  const [cancelLoading, setCancelLoading] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [buktiUrl, setBuktiUrl] = useState(null)
 
@@ -71,7 +75,6 @@ export default function AdminDashboard() {
   useEffect(() => { if (user) ambilData() }, [user])
 
   const handleSetujui = async (pembayaranId) => {
-    setConfirmApprove(null)
     try {
       const res = await fetch('/api/pembayaran', {
         method: 'PUT',
@@ -79,12 +82,38 @@ export default function AdminDashboard() {
         body: JSON.stringify({ pembayaranId }),
       })
       if (res.ok) {
-        toast.success('Pembayaran disetujui!')
+        toast.success('Pembayaran disetujui')
+        setConfirmApprove(null)
         ambilData()
       } else {
-        toast.error('Gagal menyetujui pembayaran')
+        toast.error('Gagal menyetujui')
       }
-    } catch { toast.error('Gagal menyetujui') }
+    } catch { toast.error('Gagal memproses') }
+  }
+
+  const handleBatalPembayaran = async (e) => {
+    e.preventDefault()
+    setCancelLoading(true)
+    try {
+      const res = await fetch(`/api/pembayaran/${cancelT.pembayaran.id}/cancel`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ alasan: cancelReason }),
+      })
+      if (res.ok) {
+        toast.success(cancelT.pembayaran.status === 'SUCCESS' ? 'Pembayaran dibatalkan' : 'Pembayaran ditolak')
+        setCancelT(null)
+        setCancelReason('')
+        ambilData()
+      } else {
+        const d = await res.json()
+        toast.error(d.pesan || 'Gagal membatalkan')
+      }
+    } catch {
+      toast.error('Gagal memproses')
+    } finally {
+      setCancelLoading(false)
+    }
   }
 
   const handleTambahPengeluaran = async (e) => {
@@ -235,6 +264,13 @@ export default function AdminDashboard() {
                   </button>
                 )}
                 <button
+                  onClick={() => setCancelT(t)}
+                  className="btn btn-secondary btn-sm"
+                  style={{ color: 'var(--color-danger)' }}
+                >
+                  <i className="ri-close-line" /> Tolak
+                </button>
+                <button
                   onClick={() => setConfirmApprove(t)}
                   className="btn btn-primary btn-sm"
                 >
@@ -334,11 +370,23 @@ export default function AdminDashboard() {
                       <p style={{ fontSize: '15px', fontWeight: 600, color: 'var(--color-text)', margin: '2px 0 0' }}>Rp {t.jumlah.toLocaleString('id-ID')}</p>
                     </div>
                     {status === 'Pending' && (
-                      <button onClick={() => setConfirmApprove(t)} className="btn btn-primary btn-sm">
-                        <i className="ri-check-line" /> Setujui
-                      </button>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <button onClick={() => setCancelT(t)} className="btn btn-secondary btn-sm" style={{ color: 'var(--color-danger)' }}>
+                          <i className="ri-close-line" /> Tolak
+                        </button>
+                        <button onClick={() => setConfirmApprove(t)} className="btn btn-primary btn-sm">
+                          <i className="ri-check-line" /> Setujui
+                        </button>
+                      </div>
                     )}
-                    {status === 'Lunas' && <span style={{ fontSize: '12px', color: 'var(--color-text-muted)', fontStyle: 'italic' }}>Valid ✓</span>}
+                    {status === 'Lunas' && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontSize: '12px', color: 'var(--color-text-muted)', fontStyle: 'italic' }}>Valid ✓</span>
+                        <button onClick={() => setCancelT(t)} className="btn btn-ghost btn-sm" style={{ color: 'var(--color-danger)', padding: '4px 8px' }}>
+                          Batal
+                        </button>
+                      </div>
+                    )}
                     {status === 'Belum Bayar' && <span style={{ fontSize: '12px', color: 'var(--color-text-muted)', fontStyle: 'italic' }}>Menunggu warga</span>}
                   </div>
                 </div>
@@ -352,22 +400,55 @@ export default function AdminDashboard() {
       <Modal isOpen={!!confirmApprove} onClose={() => setConfirmApprove(null)} title="Konfirmasi Persetujuan" size="sm">
         {confirmApprove && (
           <>
-            <p style={{ fontSize: '14px', color: 'var(--color-text-secondary)', lineHeight: 1.5, margin: '0 0 16px' }}>
-              Setujui pembayaran dari <strong>{confirmApprove.user.nama}</strong> (Blok {confirmApprove.user.noRumah})?
-            </p>
-            <div className="card-flat" style={{ marginBottom: '16px' }}>
+            <div className="card-flat" style={{ marginBottom: '16px', textAlign: 'center' }}>
+              <p style={{ fontSize: '14px', color: 'var(--color-text-secondary)', margin: '0 0 8px' }}>
+                Setujui pembayaran dari <strong>{confirmApprove.user.nama}</strong> (Blok {confirmApprove.user.noRumah})?
+              </p>
               <p style={{ margin: 0, fontSize: '14px' }}>{confirmApprove.bulan} {confirmApprove.tahun}</p>
-              <p style={{ margin: '4px 0 0', fontSize: '18px', fontWeight: 600, color: 'var(--color-text)' }}>
+              <p style={{ fontSize: '18px', fontWeight: 600, color: 'var(--color-text)', margin: '4px 0 0' }}>
                 Rp {confirmApprove.jumlah.toLocaleString('id-ID')}
               </p>
             </div>
             <div style={{ display: 'flex', gap: '8px' }}>
               <button onClick={() => setConfirmApprove(null)} className="btn btn-secondary btn-sm" style={{ flex: 1 }}>Batal</button>
-              <button onClick={() => handleSetujui(confirmApprove.pembayaran.id)} className="btn btn-primary btn-sm" style={{ flex: 1 }}>
-                <i className="ri-check-double-line" /> Setujui
+              <button onClick={() => handleSetujui(confirmApprove.pembayaran.id)} className="btn btn-primary btn-sm" style={{ flex: 1, justifyContent: 'center' }}>
+                <i className="ri-check-line" /> Ya, Setujui
               </button>
             </div>
           </>
+        )}
+      </Modal>
+
+      {/* Cancel/Reject Modal */}
+      <Modal isOpen={!!cancelT} onClose={() => { setCancelT(null); setCancelReason('') }} title={cancelT?.pembayaran?.status === 'SUCCESS' ? 'Batalkan Persetujuan' : 'Tolak Pembayaran'} size="sm">
+        {cancelT && (
+          <form onSubmit={handleBatalPembayaran}>
+            <div className="card-flat" style={{ marginBottom: '16px' }}>
+              <p style={{ fontSize: '14px', color: 'var(--color-text-secondary)', margin: '0 0 8px', lineHeight: 1.5 }}>
+                Anda akan {cancelT.pembayaran.status === 'SUCCESS' ? 'membatalkan status LUNAS' : 'menolak pembayaran'} atas nama <strong>{cancelT.user.nama}</strong> untuk iuran {cancelT.bulan} {cancelT.tahun}.
+              </p>
+            </div>
+            <div style={{ marginBottom: '16px' }}>
+              <label className="form-label">
+                Alasan Pembatalan {cancelT.pembayaran.status === 'SUCCESS' && <span style={{ color: 'var(--color-danger)' }}>*wajib</span>}
+              </label>
+              <textarea 
+                value={cancelReason} 
+                onChange={e => setCancelReason(e.target.value)} 
+                className="textarea-field" 
+                placeholder="Misal: Uang belum masuk ke rekening..." 
+                rows={3} 
+                required={cancelT.pembayaran.status === 'SUCCESS'}
+              />
+              <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', margin: '4px 0 0' }}>Alasan ini akan dikirim ke warga sebagai notifikasi.</p>
+            </div>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button type="button" onClick={() => { setCancelT(null); setCancelReason('') }} className="btn btn-secondary" style={{ flex: 1 }}>Kembali</button>
+              <button type="submit" disabled={cancelLoading} className="btn btn-danger" style={{ flex: 1, justifyContent: 'center' }}>
+                {cancelLoading ? 'Memproses...' : 'Ya, Batalkan'}
+              </button>
+            </div>
+          </form>
         )}
       </Modal>
       {/* Modal Bukti Transfer */}
