@@ -5,7 +5,7 @@ import { sendPushToUser, sendPushToRole } from '@/lib/pushNotification'
 export async function POST(request) {
   try {
     const body = await request.json()
-    const { tagihanId, metodeBayar } = body
+    const { tagihanId, metodeBayar, buktiTransfer } = body
 
     if (!tagihanId || !metodeBayar) {
       return NextResponse.json({ pesan: 'Data tidak lengkap' }, { status: 400 })
@@ -29,6 +29,7 @@ export async function POST(request) {
         jumlah: tagihan.jumlah,
         metodeBayar,
         status: 'PENDING',
+        buktiTransfer: buktiTransfer || null,
         // midtransId sengaja dikosongkan (null) — field ini disiapkan
         // untuk integrasi Midtrans sungguhan nanti. Untuk sekarang,
         // alur pembayaran masih simulasi manual yang dikonfirmasi admin.

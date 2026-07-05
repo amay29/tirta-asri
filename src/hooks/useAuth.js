@@ -49,10 +49,15 @@ export function useAuth(requiredRole = null) {
   const rolesRef = useRef(requiredRole)
   rolesRef.current = requiredRole
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
     if (typeof window === 'undefined') return
     try { localStorage.removeItem(SESSION_KEY) } catch {}
     document.cookie = `${SESSION_KEY}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`
+    
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' })
+    } catch (e) {}
+
     router.replace('/login')
   }, [router])
 

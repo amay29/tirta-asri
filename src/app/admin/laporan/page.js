@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/hooks/useAuth'
+import { useToast } from '@/components/Toast'
 import { SkeletonList } from '@/components/Skeleton'
 import EmptyState from '@/components/EmptyState'
 import Link from 'next/link'
@@ -13,6 +14,7 @@ const BULAN_LIST = [
 
 export default function LaporanBulanan() {
   const { user } = useAuth(['ADMIN_IURAN', 'ADMIN_RT'])
+  const toast = useToast()
   const [tagihanList, setTagihanList] = useState([])
   const [loadingData, setLoadingData] = useState(true)
   const [bulanFilter, setBulanFilter] = useState(BULAN_LIST[new Date().getMonth()])
@@ -47,10 +49,33 @@ export default function LaporanBulanan() {
   const totalBelumMasuk = tagihanBelum.reduce((sum, t) => sum + t.jumlah, 0)
   const totalKeseluruhan = totalTerkumpul + totalBelumMasuk
 
+  const handleDownloadCSV = () => {
+    if (dataBulanIni.length === 0) return toast.error('Tidak ada data untuk bulan ini')
+    
+    let csvContent = 'No,Nama Warga,Blok / No. Rumah,Status,Jumlah (Rp)\n'
+    dataBulanIni.forEach((t, idx) => {
+      const isLunas = t.pembayaran?.status === 'SUCCESS'
+      csvContent += `${idx + 1},"${t.user.nama}","Blok ${t.user.noRumah}","${isLunas ? 'LUNAS' : 'BELUM BAYAR'}",${t.jumlah}\n`
+    })
+    
+    csvContent += `\nTotal Lunas,,,,${totalTerkumpul}\n`
+    csvContent += `Total Belum Bayar,,,,${totalBelumMasuk}\n`
+    csvContent += `Total Potensi Kas,,,,${totalKeseluruhan}\n`
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', `Laporan_Iuran_${bulanFilter}_${tahunFilter}.csv`)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
   return (
     <>
       <div className="no-print animate-fade-up" style={{ marginBottom: '24px' }}>
-        <Link href="/admin" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '13px', color: 'var(--color-text-muted)', textDecoration: 'none', marginBottom: '12px' }}>
+        <Link href="/admin" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '14px', color: 'var(--color-text-muted)', textDecoration: 'none', marginBottom: '12px' }}>
           <i className="ri-arrow-left-line" /> Kembali ke Dashboard
         </Link>
         <p className="label-small" style={{ marginBottom: '4px' }}>Tirta Asri Residence</p>
@@ -60,16 +85,19 @@ export default function LaporanBulanan() {
 
       <div className="no-print card animate-fade-up delay-1" style={{ marginBottom: '20px', display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
         <div style={{ flex: 1, minWidth: '150px' }}>
-          <label className="form-label">Pilih Bulan</label>
+          <label className="form-label" style={{ fontSize: '14px' }}>Pilih Bulan</label>
           <select value={bulanFilter} onChange={e => setBulanFilter(e.target.value)} className="select-field">
             {BULAN_LIST.map(b => <option key={b} value={b}>{b}</option>)}
           </select>
         </div>
         <div style={{ flex: 1, minWidth: '100px' }}>
-          <label className="form-label">Pilih Tahun</label>
+          <label className="form-label" style={{ fontSize: '14px' }}>Pilih Tahun</label>
           <input type="number" value={tahunFilter} onChange={e => setTahunFilter(e.target.value)} className="input-field" />
         </div>
-        <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-end', gap: '8px' }}>
+          <button onClick={handleDownloadCSV} className="btn btn-outline" style={{ height: '48px' }}>
+            <i className="ri-file-excel-line" /> Unduh CSV
+          </button>
           <button onClick={() => window.print()} className="btn btn-primary" style={{ height: '48px' }}>
             <i className="ri-printer-line" /> Cetak PDF
           </button>

@@ -38,6 +38,7 @@ export default function AdminDashboard() {
   const [sumberDana, setSumberDana] = useState('Cash')
   const [confirmApprove, setConfirmApprove] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
+  const [buktiUrl, setBuktiUrl] = useState(null)
 
   const isRT = user?.role === 'ADMIN_RT'
   const isIuran = user?.role === 'ADMIN_IURAN'
@@ -152,11 +153,17 @@ export default function AdminDashboard() {
         </p>
       </div>
 
-      {/* PWA & Notifications */}
-      <div className="animate-fade-up">
+      {/* PWA & Notifications & Backup */}
+      <div className="animate-fade-up" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
         <PWAInstallButton />
         <NotificationButton />
+        {isRT && (
+          <a href="/api/backup" target="_blank" className="btn btn-outline btn-sm" style={{ textDecoration: 'none' }}>
+            <i className="ri-database-2-line" /> Backup Database
+          </a>
+        )}
       </div>
+
 
       {/* Stats Grid */}
       <div className="animate-fade-up delay-1" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px', marginBottom: '20px' }}>
@@ -218,12 +225,22 @@ export default function AdminDashboard() {
                   Blok {t.user.noRumah} · {t.bulan} {t.tahun} · {t.pembayaran?.metodeBayar} · Rp {t.jumlah.toLocaleString('id-ID')}
                 </p>
               </div>
-              <button
-                onClick={() => setConfirmApprove(t)}
-                className="btn btn-primary btn-sm"
-              >
-                <i className="ri-check-line" /> Setujui
-              </button>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                {t.pembayaran?.buktiTransfer && (
+                  <button
+                    onClick={() => setBuktiUrl(t.pembayaran.buktiTransfer)}
+                    className="btn btn-outline btn-sm"
+                  >
+                    <i className="ri-image-line" /> Lihat Bukti
+                  </button>
+                )}
+                <button
+                  onClick={() => setConfirmApprove(t)}
+                  className="btn btn-primary btn-sm"
+                >
+                  <i className="ri-check-line" /> Setujui
+                </button>
+              </div>
             </div>
           ))}
         </div>
@@ -351,6 +368,21 @@ export default function AdminDashboard() {
               </button>
             </div>
           </>
+        )}
+      </Modal>
+      {/* Modal Bukti Transfer */}
+      <Modal isOpen={!!buktiUrl} onClose={() => setBuktiUrl(null)} title="Bukti Transfer" size="md">
+        {buktiUrl && (
+          <div style={{ textAlign: 'center' }}>
+            <img 
+              src={buktiUrl} 
+              alt="Bukti Transfer" 
+              style={{ maxWidth: '100%', maxHeight: '70vh', objectFit: 'contain', borderRadius: '8px' }} 
+            />
+            <button onClick={() => setBuktiUrl(null)} className="btn btn-outline" style={{ marginTop: '16px', width: '100%', justifyContent: 'center' }}>
+              Tutup
+            </button>
+          </div>
         )}
       </Modal>
     </>

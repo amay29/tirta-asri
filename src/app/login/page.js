@@ -11,6 +11,7 @@ export default function Login() {
   const [pin, setPin] = useState('')
   const [loading, setLoading] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
+  const [showPin, setShowPin] = useState(false)
 
   const handleLogin = async (e) => {
     e.preventDefault()
@@ -152,21 +153,38 @@ export default function Login() {
                 <i className="ri-lock-2-line" style={{ marginRight: '6px' }} />
                 PIN (6 Digit)
               </label>
-              <input
-                id="pin"
-                name="pin"
-                type="password"
-                inputMode="numeric"
-                placeholder="● ● ● ● ● ●"
-                value={pin}
-                onChange={handlePinChange}
-                className="input-field"
-                style={{ letterSpacing: pin ? '8px' : 'normal', fontSize: pin ? '20px' : '15px', textAlign: pin ? 'center' : 'left' }}
-                autoComplete="current-password"
-                maxLength={6}
-                required
-              />
-              <p className="form-hint">
+              <div style={{ position: 'relative' }}>
+                <input
+                  id="pin"
+                  name="pin"
+                  type={showPin ? 'text' : 'password'}
+                  inputMode="numeric"
+                  placeholder="● ● ● ● ● ●"
+                  value={pin}
+                  onChange={handlePinChange}
+                  className="input-field"
+                  style={{ 
+                    letterSpacing: (pin && !showPin) ? '8px' : 'normal', 
+                    fontSize: (pin && !showPin) ? '20px' : '15px', 
+                    textAlign: (pin && !showPin) ? 'center' : 'left',
+                    paddingRight: '48px'
+                  }}
+                  autoComplete="current-password"
+                  maxLength={6}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPin(!showPin)}
+                  style={{
+                    position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)',
+                    background: 'none', border: 'none', color: 'var(--color-text-muted)', cursor: 'pointer', padding: '4px'
+                  }}
+                >
+                  <i className={showPin ? 'ri-eye-off-line' : 'ri-eye-line'} style={{ fontSize: '18px' }} />
+                </button>
+              </div>
+              <p className="form-hint" style={{ marginTop: '8px' }}>
                 <i className="ri-shield-check-line" style={{ marginRight: '4px' }} />
                 PIN Anda bersifat rahasia, jangan beritahu siapapun
               </p>

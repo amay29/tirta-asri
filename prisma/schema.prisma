@@ -33,14 +33,15 @@ model Tagihan {
 }
 
 model Pembayaran {
-  id          Int              @id @default(autoincrement())
-  jumlah      Int
-  metodeBayar String
-  status      StatusPembayaran @default(PENDING)
-  midtransId  String?
-  createdAt   DateTime         @default(now())
-  tagihanId   Int              @unique
-  tagihan     Tagihan          @relation(fields: [tagihanId], references: [id])
+  id            Int              @id @default(autoincrement())
+  jumlah        Int
+  metodeBayar   String
+  status        StatusPembayaran @default(PENDING)
+  midtransId    String?
+  buktiTransfer String?
+  createdAt     DateTime         @default(now())
+  tagihanId     Int              @unique
+  tagihan       Tagihan          @relation(fields: [tagihanId], references: [id])
 }
 
 model Surat {
@@ -106,4 +107,12 @@ enum StatusSurat {
   DIPROSES
   SELESAI
   DITOLAK
+}
+
+model AuditLog {
+  id        Int      @id @default(autoincrement())
+  action    String
+  userId    Int?
+  details   String?
+  createdAt DateTime @default(now())
 }

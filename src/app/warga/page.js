@@ -40,6 +40,14 @@ export default function WargaDashboard() {
   const [paymentStep, setPaymentStep] = useState('select')
   const [showKasDetail, setShowKasDetail] = useState(false)
   const [countdown, setCountdown] = useState(10)
+  const [showPinModal, setShowPinModal] = useState(false)
+  const [oldPin, setOldPin] = useState('')
+  const [newPin, setNewPin] = useState('')
+  const [confirmPin, setConfirmPin] = useState('')
+  const [pinLoading, setPinLoading] = useState(false)
+  const [showPin, setShowPin] = useState(false)
+  const [buktiFile, setBuktiFile] = useState(null)
+  const [isUploading, setIsUploading] = useState(false)
 
   const ambilData = async () => {
     if (!user) return
@@ -89,12 +97,16 @@ export default function WargaDashboard() {
     setShowPayModal(true)
   }
 
-  const kirimPembayaran = async (metode) => {
+  const kirimPembayaran = async (metode, fileUrl = null) => {
     try {
       const res = await fetch('/api/pembayaran', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tagihanId: selectedTagihan.id, metodeBayar: metode }),
+        body: JSON.stringify({ 
+          tagihanId: selectedTagihan.id, 
+          metodeBayar: metode,
+          buktiTransfer: fileUrl
+        }),
       })
       if (res.ok) {
         setPaymentStep('success')
@@ -111,10 +123,32 @@ export default function WargaDashboard() {
     }
   }
 
-  const handleProsesMetode = () => {
+  const handleProsesMetode = async () => {
     if (metodePilihan === 'QRIS Gateway') {
       setPaymentStep('scanning')
       setCountdown(10)
+    } else if (metodePilihan === 'Transfer Manual') {
+      if (!buktiFile) {
+        toast.error('Harap unggah bukti transfer terlebih dahulu')
+        return
+      }
+      setIsUploading(true)
+      const formData = new FormData()
+      formData.append('file', buktiFile)
+      try {
+        const res = await fetch('/api/upload', { method: 'POST', body: formData })
+        if (res.ok) {
+          const data = await res.json()
+          await kirimPembayaran('Transfer Manual', data.url)
+        } else {
+          const errorData = await res.json()
+          toast.error(errorData.pesan || 'Gagal mengunggah bukti transfer')
+        }
+      } catch (e) {
+        toast.error('Terjadi kesalahan saat mengunggah file')
+      } finally {
+        setIsUploading(false)
+      }
     } else {
       kirimPembayaran('Tunai')
     }
@@ -136,6 +170,34 @@ export default function WargaDashboard() {
       return () => clearInterval(interval)
     }
   }, [showPayModal, paymentStep])
+
+  const handleChangePin = async () => {
+    if (newPin !== confirmPin) {
+      toast.error('PIN baru dan konfirmasi tidak cocok')
+      return
+    }
+    setPinLoading(true)
+    try {
+      const res = await fetch('/api/auth/change-pin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id, oldPin, newPin }),
+      })
+      if (res.ok) {
+        toast.success('PIN berhasil diubah')
+        setShowPinModal(false)
+        setOldPin('')
+        setNewPin('')
+        setConfirmPin('')
+      } else {
+        const data = await res.json()
+        toast.error(data.pesan || 'Gagal mengubah PIN')
+      }
+    } catch {
+      toast.error('Gagal mengubah PIN')
+    }
+    setPinLoading(false)
+  }
 
   if (!user || loadingData) {
     return <SkeletonDashboard />
@@ -280,7 +342,7 @@ export default function WargaDashboard() {
       <Link href="/warga/surat" className="animate-fade-up delay-2" style={{
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         background: 'var(--color-card)', border: '1px solid var(--color-border-light)',
-        borderRadius: 'var(--radius-lg)', padding: '16px 18px', marginBottom: '16px',
+        borderRadius: 'var(--radius-lg)', padding: '16px 18px', marginBottom: '8px',
         textDecoration: 'none', transition: 'box-shadow 0.2s',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -292,6 +354,22 @@ export default function WargaDashboard() {
         </div>
         <i className="ri-arrow-right-s-line" style={{ fontSize: '20px', color: 'var(--color-text-muted)' }} />
       </Link>
+
+      <button onClick={() => setShowPinModal(true)} className="animate-fade-up delay-2" style={{
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        background: 'var(--color-card)', border: '1px solid var(--color-border-light)',
+        borderRadius: 'var(--radius-lg)', padding: '16px 18px', marginBottom: '16px',
+        textDecoration: 'none', transition: 'box-shadow 0.2s', width: '100%', cursor: 'pointer', outline: 'none'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <i className="ri-lock-password-line" style={{ fontSize: '22px', color: 'var(--color-primary)' }} />
+          <div style={{ textAlign: 'left' }}>
+            <p style={{ fontSize: '15px', fontWeight: 600, color: 'var(--color-text)', margin: 0 }}>Ubah PIN Akun</p>
+            <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', margin: '2px 0 0' }}>Ganti password login Anda</p>
+          </div>
+        </div>
+        <i className="ri-arrow-right-s-line" style={{ fontSize: '20px', color: 'var(--color-text-muted)' }} />
+      </button>
 
       {/* Tagihan List */}
       <div className="animate-fade-up delay-3" id="iuran">
@@ -393,9 +471,28 @@ export default function WargaDashboard() {
             >
               <option value="QRIS Gateway">QRIS Gateway (Scan QR)</option>
               <option value="Tunai">Tunai / Cash (Titip Pengurus)</option>
+              <option value="Transfer Manual">Transfer Manual (Bukti Transfer)</option>
             </select>
-            <button onClick={handleProsesMetode} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
-              Lanjutkan Pembayaran
+            
+            {metodePilihan === 'Transfer Manual' && (
+              <div className="card-flat" style={{ marginBottom: '16px', background: 'var(--color-bg)' }}>
+                <p style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text)', margin: '0 0 4px' }}>Bank BCA</p>
+                <p style={{ fontSize: '18px', fontWeight: 700, color: 'var(--color-primary)', margin: '0 0 4px', letterSpacing: '1px' }}>1234567890</p>
+                <p style={{ fontSize: '12px', color: 'var(--color-text-secondary)', margin: '0 0 12px' }}>a/n Tirta Asri</p>
+                
+                <label className="form-label" style={{ fontSize: '13px' }}>Unggah Bukti Transfer (Max 2MB)</label>
+                <input 
+                  type="file" 
+                  accept="image/jpeg,image/png,image/jpg"
+                  onChange={e => setBuktiFile(e.target.files[0])}
+                  className="input-field" 
+                  style={{ fontSize: '13px', padding: '8px' }}
+                />
+              </div>
+            )}
+
+            <button onClick={handleProsesMetode} disabled={isUploading || (metodePilihan === 'Transfer Manual' && !buktiFile)} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
+              {isUploading ? 'Mengunggah...' : 'Lanjutkan Pembayaran'}
             </button>
           </>
         )}
@@ -461,6 +558,33 @@ export default function WargaDashboard() {
             </button>
           </div>
         )}
+      </Modal>
+
+      {/* Ubah PIN Modal */}
+      <Modal isOpen={showPinModal} onClose={() => setShowPinModal(false)} title="Ubah PIN" size="sm">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '-10px' }}>
+            <button type="button" onClick={() => setShowPin(!showPin)} className="btn btn-ghost btn-sm" style={{ padding: '0 8px', fontSize: '13px' }}>
+              <i className={showPin ? 'ri-eye-off-line' : 'ri-eye-line'} style={{ marginRight: '4px' }} />
+              {showPin ? 'Sembunyikan PIN' : 'Lihat PIN'}
+            </button>
+          </div>
+          <div>
+            <label className="form-label" style={{ fontSize: '14px' }}>PIN Lama</label>
+            <input type={showPin ? 'text' : 'password'} value={oldPin} onChange={e => setOldPin(e.target.value)} className="input-field" placeholder="Masukkan PIN lama" maxLength={6} />
+          </div>
+          <div>
+            <label className="form-label" style={{ fontSize: '14px' }}>PIN Baru</label>
+            <input type={showPin ? 'text' : 'password'} value={newPin} onChange={e => setNewPin(e.target.value)} className="input-field" placeholder="Masukkan PIN baru" maxLength={6} />
+          </div>
+          <div>
+            <label className="form-label" style={{ fontSize: '14px' }}>Konfirmasi PIN Baru</label>
+            <input type={showPin ? 'text' : 'password'} value={confirmPin} onChange={e => setConfirmPin(e.target.value)} className="input-field" placeholder="Ketik ulang PIN baru" maxLength={6} />
+          </div>
+          <button onClick={handleChangePin} disabled={pinLoading || !oldPin || !newPin || !confirmPin} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
+            {pinLoading ? 'Memproses...' : 'Simpan PIN Baru'}
+          </button>
+        </div>
       </Modal>
     </>
   )

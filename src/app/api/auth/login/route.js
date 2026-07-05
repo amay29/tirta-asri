@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
+import { signJwt } from '@/lib/jwt'
 
 export async function POST(request) {
   try {
@@ -19,7 +20,21 @@ export async function POST(request) {
     // Jangan kirim password hash ke client
     const { password, ...userAman } = user
 
-    return NextResponse.json({ pesan: 'Login berhasil', user: userAman })
+    // Buat JWT Token
+    const token = await signJwt({ id: user.id, role: user.role })
+
+    const response = NextResponse.json({ pesan: 'Login berhasil', user: userAman })
+
+    // Set HTTP-only cookie
+    response.cookies.set('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60, // 7 hari
+      path: '/',
+    })
+
+    return response
   } catch (error) {
     console.error('Login error:', error)
     return NextResponse.json({ pesan: 'Terjadi kesalahan server' }, { status: 500 })

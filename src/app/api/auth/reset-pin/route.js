@@ -1,10 +1,18 @@
 import { NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import { prisma } from '@/lib/prisma'
+import { logAudit } from '@/lib/audit'
 
 // POST /api/auth/reset-pin — Admin reset PIN warga ke default 123456
 export async function POST(request) {
   try {
+    const adminId = request.headers.get('x-user-id')
+    const adminRole = request.headers.get('x-user-role')
+
+    if (adminRole !== 'ADMIN_RT') {
+      return NextResponse.json({ pesan: 'Hanya Ketua RT yang bisa mereset PIN' }, { status: 403 })
+    }
+
     const { userId } = await request.json()
 
     if (!userId) {
@@ -18,6 +26,8 @@ export async function POST(request) {
       where: { id: parseInt(userId) },
       data: { password: hash },
     })
+
+    await logAudit('RESET_PIN', adminId, `Merest PIN untuk user ID ${userId}`)
 
     return NextResponse.json({ pesan: `PIN berhasil direset ke ${pinDefault}` })
   } catch (error) {
