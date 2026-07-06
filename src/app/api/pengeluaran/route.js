@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { logAudit } from '@/lib/audit'
 
 export async function GET() {
   try {
@@ -26,6 +27,9 @@ export async function POST(request) {
       data: { keperluan, nominal: parseInt(nominal), sumber },
     })
 
+    const userId = request.headers.get('x-user-id')
+    await logAudit('EXPENSE_ADD', userId, `Mencatat pengeluaran: ${keperluan} (Rp ${parseInt(nominal).toLocaleString('id-ID')})`)
+
     return NextResponse.json({ pesan: 'Pengeluaran tercatat', pengeluaran: pengeluaranBaru })
   } catch (error) {
     console.error(error)
@@ -38,7 +42,10 @@ export async function DELETE(request) {
     const body = await request.json()
     const { id } = body
 
-    await prisma.pengeluaran.delete({ where: { id: parseInt(id) } })
+    const deleted = await prisma.pengeluaran.delete({ where: { id: parseInt(id) } })
+
+    const userId = request.headers.get('x-user-id')
+    await logAudit('EXPENSE_DELETE', userId, `Menghapus pengeluaran: ${deleted.keperluan}`)
 
     return NextResponse.json({ success: true })
   } catch (error) {

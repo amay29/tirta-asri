@@ -248,13 +248,24 @@ export default function WargaDashboard() {
                       </span>
                     )}
                   </div>
-                  {p.foto && (
+                  {(p.lampiranType === 'image' || p.foto) && (
                     <div 
-                      onClick={() => setFullscreenFoto(p.foto)}
+                      onClick={() => setFullscreenFoto(p.lampiranUrl || p.foto)}
                       style={{ marginBottom: '8px', borderRadius: '8px', overflow: 'hidden', height: '140px', background: '#eee', cursor: 'pointer' }}
                     >
-                      <img src={p.foto} alt="Foto Pengumuman" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <img src={p.lampiranUrl || p.foto} alt="Foto Pengumuman" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     </div>
+                  )}
+                  {p.lampiranType === 'document' && (
+                    <a 
+                      href={p.lampiranUrl} 
+                      target="_blank" 
+                      rel="noreferrer"
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '8px 12px', background: 'var(--color-card)', border: '1px solid var(--color-border)', borderRadius: '8px', textDecoration: 'none', color: 'var(--color-primary)', fontSize: '13px', fontWeight: 600, marginBottom: '8px' }}
+                    >
+                      <i className="ri-file-download-line" style={{ fontSize: '16px' }} />
+                      {p.lampiranName || 'Unduh Dokumen'}
+                    </a>
                   )}
                   <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', margin: '0 0 6px', lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>
                     {p.isi.length > 120 ? p.isi.slice(0, 120) + '...' : p.isi}

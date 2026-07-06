@@ -13,7 +13,9 @@ export async function signJwt(payload) {
 
 export async function verifyJwt(token) {
   try {
-    const { payload } = await jwtVerify(token, encodedKey)
+    const { payload } = await jwtVerify(token, encodedKey, {
+      clockTolerance: 300 // Toleransi waktu 5 menit untuk mengatasi perbedaan jam antar perangkat
+    })
     return payload
   } catch (error) {
     return null

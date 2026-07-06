@@ -18,7 +18,7 @@ export async function middleware(request) {
   const isWargaRoute = pathname.startsWith('/warga')
 
   if (isApiRoute || isAdminRoute || isWargaRoute) {
-    const token = request.cookies.get('token')?.value
+    const token = request.cookies.get('session_token')?.value
 
     if (!token) {
       if (isApiRoute) {

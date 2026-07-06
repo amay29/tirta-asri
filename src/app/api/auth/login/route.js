@@ -26,10 +26,10 @@ export async function POST(request) {
     const response = NextResponse.json({ pesan: 'Login berhasil', user: userAman })
 
     // Set HTTP-only cookie
-    response.cookies.set('token', token, {
+    response.cookies.set('session_token', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      secure: process.env.NODE_ENV === 'production' && request.headers.get('x-forwarded-proto') === 'https',
+      sameSite: 'lax',
       maxAge: 7 * 24 * 60 * 60, // 7 hari
       path: '/',
     })

@@ -150,12 +150,12 @@ export default function AdminDashboard() {
 
   const tagihanLunas = tagihanList.filter(t => statusTampilan(t) === 'Lunas')
   const masukTunai = tagihanLunas.filter(t => t.pembayaran?.metodeBayar === 'Tunai').reduce((s, t) => s + t.jumlah, 0)
-  const masukQris = tagihanLunas.filter(t => t.pembayaran?.metodeBayar === 'QRIS Gateway').reduce((s, t) => s + t.jumlah, 0)
+  const masukBank = tagihanLunas.filter(t => t.pembayaran?.metodeBayar === 'QRIS Gateway' || t.pembayaran?.metodeBayar === 'Transfer Manual').reduce((s, t) => s + t.jumlah, 0)
   const keluarTunai = pengeluaran.filter(p => p.sumber === 'Cash').reduce((s, p) => s + p.nominal, 0)
-  const keluarQris = pengeluaran.filter(p => p.sumber === 'Transfer').reduce((s, p) => s + p.nominal, 0)
+  const keluarBank = pengeluaran.filter(p => p.sumber === 'Transfer').reduce((s, p) => s + p.nominal, 0)
   const kasUangTunai = masukTunai - keluarTunai
-  const kasSaldoQris = masukQris - keluarQris
-  const totalSaldo = kasUangTunai + kasSaldoQris
+  const kasSaldoBank = masukBank - keluarBank
+  const totalSaldo = kasUangTunai + kasSaldoBank
 
   const pendingList = tagihanList.filter(t => statusTampilan(t) === 'Pending')
   const suratPending = suratList.filter(s => s.status === 'PENDING')
@@ -187,8 +187,8 @@ export default function AdminDashboard() {
         <PWAInstallButton />
         <NotificationButton />
         {isRT && (
-          <a href="/api/backup" target="_blank" className="btn btn-outline btn-sm" style={{ textDecoration: 'none' }}>
-            <i className="ri-database-2-line" /> Backup Database
+          <a href="/api/backup" target="_blank" className="btn btn-secondary btn-sm" style={{ textDecoration: 'none' }}>
+            <i className="ri-file-excel-2-line" style={{ color: 'var(--color-success)' }} /> Download Rekap Excel
           </a>
         )}
       </div>
@@ -199,17 +199,17 @@ export default function AdminDashboard() {
         <div className="stat-card stat-card-dark">
           <p className="stat-label" style={{ color: '#5a9e8a' }}><i className="ri-wallet-3-line" /> Total Saldo</p>
           <p className="stat-value">Rp {totalSaldo.toLocaleString('id-ID')}</p>
-          <p className="stat-footnote" style={{ color: '#4a7a68' }}>Cash + QRIS</p>
+          <p className="stat-footnote" style={{ color: '#4a7a68' }}>Cash + Bank</p>
         </div>
         <div className="stat-card stat-card-light">
           <p className="stat-label"><i className="ri-money-dollar-circle-line" /> Kas Tunai</p>
           <p className="stat-value">Rp {kasUangTunai.toLocaleString('id-ID')}</p>
-          <p className="stat-footnote">Uang fisik</p>
+          <p className="stat-footnote">Uang fisik / Titip Pengurus</p>
         </div>
         <div className="stat-card stat-card-light">
-          <p className="stat-label"><i className="ri-qr-code-line" /> Saldo QRIS</p>
-          <p className="stat-value">Rp {kasSaldoQris.toLocaleString('id-ID')}</p>
-          <p className="stat-footnote">Rekening digital</p>
+          <p className="stat-label"><i className="ri-bank-card-line" /> Saldo Bank</p>
+          <p className="stat-value">Rp {kasSaldoBank.toLocaleString('id-ID')}</p>
+          <p className="stat-footnote">Transfer Manual & QRIS</p>
         </div>
       </div>
 

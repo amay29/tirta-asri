@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { logAudit } from '@/lib/audit'
+import * as XLSX from 'xlsx'
 
 export async function GET(request) {
   try {
@@ -13,24 +14,62 @@ export async function GET(request) {
 
     // Ambil semua tabel utama
     const users = await prisma.user.findMany()
-    const tagihan = await prisma.tagihan.findMany()
+    const tagihan = await prisma.tagihan.findMany({
+      include: { user: true, pembayaran: true }
+    })
     const pembayaran = await prisma.pembayaran.findMany()
     const pengeluaran = await prisma.pengeluaran.findMany()
-    const pengumuman = await prisma.pengumuman.findMany()
-    const auditLogs = await prisma.auditLog.findMany()
 
-    const backupData = {
-      timestamp: new Date().toISOString(),
-      data: { users, tagihan, pembayaran, pengeluaran, pengumuman, auditLogs }
-    }
+    // Format data untuk Excel
+    const dataWarga = users.map(u => ({
+      'ID': u.id,
+      'Nama': u.nama,
+      'No Rumah': u.noRumah,
+      'Nomor HP': u.noHp,
+      'Role': u.role,
+      'Terdaftar Pada': new Date(u.createdAt).toLocaleString('id-ID')
+    }))
 
-    await logAudit('BACKUP_DATABASE', adminId, 'Melakukan backup seluruh database')
+    const dataIuran = tagihan.map(t => ({
+      'Bulan': t.bulan,
+      'Tahun': t.tahun,
+      'Jumlah': t.jumlah,
+      'Status': t.pembayaran?.status === 'SUCCESS' ? 'LUNAS' : (t.pembayaran ? 'MENUNGGU' : 'BELUM BAYAR'),
+      'Warga': t.user?.nama,
+      'No Rumah': t.user?.noRumah,
+      'Metode Bayar': t.pembayaran?.metodeBayar || '-'
+    }))
 
-    return new NextResponse(JSON.stringify(backupData, null, 2), {
+    const dataPengeluaran = pengeluaran.map(p => ({
+      'Tanggal': new Date(p.createdAt).toLocaleString('id-ID'),
+      'Keperluan': p.keperluan,
+      'Nomor/Sumber': p.sumber,
+      'Nominal (Rp)': p.nominal
+    }))
+
+    // Buat Workbook
+    const wb = XLSX.utils.book_new()
+    
+    // Tambahkan Sheets
+    const wsWarga = XLSX.utils.json_to_sheet(dataWarga)
+    XLSX.utils.book_append_sheet(wb, wsWarga, "Data Warga")
+
+    const wsIuran = XLSX.utils.json_to_sheet(dataIuran)
+    XLSX.utils.book_append_sheet(wb, wsIuran, "Riwayat Iuran")
+
+    const wsPengeluaran = XLSX.utils.json_to_sheet(dataPengeluaran)
+    XLSX.utils.book_append_sheet(wb, wsPengeluaran, "Pengeluaran")
+
+    // Generate buffer
+    const buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' })
+
+    await logAudit('BACKUP_DATABASE', adminId, 'Melakukan backup database ke format Excel')
+
+    return new NextResponse(buffer, {
       status: 200,
       headers: {
-        'Content-Disposition': `attachment; filename="backup_tirta_asri_${new Date().toISOString().split('T')[0]}.json"`,
-        'Content-Type': 'application/json',
+        'Content-Disposition': `attachment; filename="Backup_Data_Tirta_Asri_${new Date().toISOString().split('T')[0]}.xlsx"`,
+        'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       }
     })
   } catch (error) {

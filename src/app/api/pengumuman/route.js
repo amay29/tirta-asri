@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { sendPushToRole } from '@/lib/pushNotification'
+import { logAudit } from '@/lib/audit'
 
 export async function GET() {
   try {
@@ -17,7 +18,7 @@ export async function GET() {
 export async function POST(request) {
   try {
     const body = await request.json()
-    const { judul, isi, penting, pembuatRole, pembuatNama, foto } = body
+    const { judul, isi, penting, pembuatRole, pembuatNama, foto, lampiranUrl, lampiranName, lampiranType } = body
 
     if (!judul || !isi) {
       return NextResponse.json({ pesan: 'Judul dan isi wajib diisi' }, { status: 400 })
@@ -28,6 +29,9 @@ export async function POST(request) {
         judul,
         isi,
         foto: foto || null,
+        lampiranUrl: lampiranUrl || null,
+        lampiranName: lampiranName || null,
+        lampiranType: lampiranType || null,
         penting: penting || false,
         pembuatRole: pembuatRole || null,
         pembuatNama: pembuatNama || null,
@@ -42,6 +46,9 @@ export async function POST(request) {
         url: '/warga',
       })
     } catch {}
+
+    const userId = request.headers.get('x-user-id')
+    await logAudit('ANNOUNCEMENT_ADD', userId, `Membuat pengumuman: ${judul}`)
 
     return NextResponse.json({ pesan: 'Pengumuman dibuat', pengumuman: pengumumanBaru })
   } catch (error) {
@@ -70,7 +77,9 @@ export async function DELETE(request) {
       }
     }
 
-    await prisma.pengumuman.delete({ where: { id: parseInt(id) } })
+    const deleted = await prisma.pengumuman.delete({ where: { id: parseInt(id) } })
+    await logAudit('ANNOUNCEMENT_DELETE', userId, `Menghapus pengumuman: ${deleted.judul}`)
+
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error(error)
@@ -84,7 +93,7 @@ export async function PUT(request) {
     const userId = request.headers.get('x-user-id')
 
     const body = await request.json()
-    const { id, judul, isi, penting, foto } = body
+    const { id, judul, isi, penting, foto, lampiranUrl, lampiranName, lampiranType } = body
 
     if (!id || !judul || !isi) {
       return NextResponse.json({ pesan: 'Data tidak lengkap' }, { status: 400 })
@@ -108,7 +117,8 @@ export async function PUT(request) {
         judul, 
         isi, 
         penting: penting || false,
-        ...(foto !== undefined ? { foto } : {})
+        ...(foto !== undefined ? { foto } : {}),
+        ...(lampiranUrl !== undefined ? { lampiranUrl, lampiranName, lampiranType } : {})
       },
     })
 

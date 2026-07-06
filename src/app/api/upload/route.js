@@ -17,13 +17,19 @@ export async function POST(request) {
       return NextResponse.json({ pesan: 'Tidak ada file' }, { status: 400 })
     }
 
-    const validTypes = ['image/jpeg', 'image/png', 'image/jpg']
+    const validTypes = [
+      'image/jpeg', 'image/png', 'image/jpg', 
+      'application/pdf', 
+      'text/csv', 
+      'application/vnd.ms-excel', 
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    ]
     if (!validTypes.includes(file.type)) {
-      return NextResponse.json({ pesan: 'Format file tidak didukung. Harap unggah gambar JPG/PNG.' }, { status: 400 })
+      return NextResponse.json({ pesan: 'Format file tidak didukung. Harap unggah Gambar (JPG/PNG), PDF, CSV, atau Excel.' }, { status: 400 })
     }
 
-    if (file.size > 2 * 1024 * 1024) {
-      return NextResponse.json({ pesan: 'Ukuran gambar tidak boleh lebih dari 2MB.' }, { status: 400 })
+    if (file.size > 5 * 1024 * 1024) {
+      return NextResponse.json({ pesan: 'Ukuran file tidak boleh lebih dari 5MB.' }, { status: 400 })
     }
 
     const bytes = await file.arrayBuffer()
@@ -40,7 +46,13 @@ export async function POST(request) {
     const filepath = path.join(uploadDir, filename)
     await writeFile(filepath, buffer)
 
-    return NextResponse.json({ url: `/uploads/${filename}` })
+    const isImage = file.type.startsWith('image/')
+    
+    return NextResponse.json({ 
+      url: `/uploads/${filename}`,
+      name: file.name,
+      type: isImage ? 'image' : 'document'
+    })
   } catch (error) {
     console.error('Upload error:', error)
     return NextResponse.json({ pesan: 'Gagal mengupload file' }, { status: 500 })

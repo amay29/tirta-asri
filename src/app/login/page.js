@@ -74,9 +74,7 @@ export default function Login() {
 
       const target = ['ADMIN_IURAN', 'ADMIN_RT'].includes(hasil.user.role) ? '/admin' : '/warga'
       
-      // Gunakan router.push agar navigasi berjalan sebagai SPA (tanpa full reload)
-      // Ini sangat penting untuk browser HP (terutama in-app browser) yang sering
-      // kehilangan localStorage/cookie saat full page reload.
+      // Gunakan router.push agar navigasi berjalan sebagai SPA
       setTimeout(() => {
         router.push(target)
       }, 100)

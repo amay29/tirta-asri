@@ -21,8 +21,10 @@ export default function PengumumanAdmin() {
   // State untuk form buat baru
   const [judul, setJudul] = useState('')
   const [isi, setIsi] = useState('')
-  const [foto, setFoto] = useState(null)
-  const [fotoPreview, setFotoPreview] = useState('')
+  const [lampiran, setLampiran] = useState(null)
+  const [lampiranName, setLampiranName] = useState('')
+  const [lampiranType, setLampiranType] = useState('')
+  const [lampiranPreview, setLampiranPreview] = useState('')
   const [penting, setPenting] = useState(false)
   const [sending, setSending] = useState(false)
   
@@ -30,8 +32,10 @@ export default function PengumumanAdmin() {
   const [editId, setEditId] = useState(null)
   const [editJudul, setEditJudul] = useState('')
   const [editIsi, setEditIsi] = useState('')
-  const [editFoto, setEditFoto] = useState(null)
-  const [editFotoPreview, setEditFotoPreview] = useState('')
+  const [editLampiran, setEditLampiran] = useState(null)
+  const [editLampiranName, setEditLampiranName] = useState('')
+  const [editLampiranType, setEditLampiranType] = useState('')
+  const [editLampiranPreview, setEditLampiranPreview] = useState('')
   const [editPenting, setEditPenting] = useState(false)
   const [updating, setUpdating] = useState(false)
   
@@ -65,27 +69,32 @@ export default function PengumumanAdmin() {
 
   useEffect(() => { if (user) ambilData() }, [user])
 
-  const handleFotoChange = (e, isEdit = false) => {
+  const handleLampiranChange = (e, isEdit = false) => {
     const file = e.target.files[0]
     if (!file) return
-    const preview = URL.createObjectURL(file)
+    const isImage = file.type.startsWith('image/')
+    const preview = isImage ? URL.createObjectURL(file) : ''
+    
     if (isEdit) {
-      setEditFoto(file)
-      setEditFotoPreview(preview)
+      setEditLampiran(file)
+      setEditLampiranName(file.name)
+      setEditLampiranType(isImage ? 'image' : 'document')
+      setEditLampiranPreview(preview)
     } else {
-      setFoto(file)
-      setFotoPreview(preview)
+      setLampiran(file)
+      setLampiranName(file.name)
+      setLampiranType(isImage ? 'image' : 'document')
+      setLampiranPreview(preview)
     }
   }
 
-  const uploadFoto = async (fileObj) => {
+  const uploadLampiran = async (fileObj) => {
     if (!fileObj) return null
     const fd = new FormData()
     fd.append('file', fileObj)
     const res = await fetch('/api/upload', { method: 'POST', body: fd })
     if (res.ok) {
-      const data = await res.json()
-      return data.url
+      return await res.json()
     }
     return null
   }
@@ -95,9 +104,9 @@ export default function PengumumanAdmin() {
     if (!judul || !isi) return
     setSending(true)
     try {
-      let uploadedUrl = null
-      if (foto) {
-        uploadedUrl = await uploadFoto(foto)
+      let lampData = null
+      if (lampiran) {
+        lampData = await uploadLampiran(lampiran)
       }
       const res = await fetch('/api/pengumuman', {
         method: 'POST',
@@ -105,7 +114,10 @@ export default function PengumumanAdmin() {
         body: JSON.stringify({
           judul,
           isi,
-          foto: uploadedUrl,
+          foto: lampData?.type === 'image' ? lampData.url : null,
+          lampiranUrl: lampData?.url || null,
+          lampiranName: lampData?.name || null,
+          lampiranType: lampData?.type || null,
           penting,
           pembuatRole: user.role,
           pembuatNama: user.nama,
@@ -114,8 +126,10 @@ export default function PengumumanAdmin() {
       if (res.ok) {
         setJudul('')
         setIsi('')
-        setFoto(null)
-        setFotoPreview('')
+        setLampiran(null)
+        setLampiranName('')
+        setLampiranType('')
+        setLampiranPreview('')
         setPenting(false)
         toast.success('Pengumuman berhasil dibuat!')
         ambilData()
@@ -129,8 +143,10 @@ export default function PengumumanAdmin() {
     setEditJudul(p.judul)
     setEditIsi(p.isi)
     setEditPenting(p.penting)
-    setEditFoto(null)
-    setEditFotoPreview(p.foto || '')
+    setEditLampiran(null)
+    setEditLampiranName(p.lampiranName || '')
+    setEditLampiranType(p.lampiranType || (p.foto ? 'image' : ''))
+    setEditLampiranPreview(p.lampiranUrl || p.foto || '')
   }
 
   const handleUpdate = async (e) => {
@@ -138,14 +154,39 @@ export default function PengumumanAdmin() {
     if (!editJudul || !editIsi) return
     setUpdating(true)
     try {
-      let uploadedUrl = editFotoPreview
-      if (editFoto) {
-        uploadedUrl = await uploadFoto(editFoto)
+      let lUrl = editLampiranType === 'image' ? editLampiranPreview : null
+      let lName = editLampiranName
+      let lType = editLampiranType
+      let lFoto = editLampiranType === 'image' ? editLampiranPreview : null
+      
+      if (editLampiranType === 'document') {
+          lUrl = editLampiranPreview
       }
+      
+      // Jika upload file baru, kita gunakan yang dari upload
+      if (editLampiran) {
+        const lampData = await uploadLampiran(editLampiran)
+        if (lampData) {
+           lUrl = lampData.url
+           lName = lampData.name
+           lType = lampData.type
+           lFoto = lampData.type === 'image' ? lampData.url : null
+        }
+      }
+
       const res = await fetch('/api/pengumuman', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: editId, judul: editJudul, isi: editIsi, foto: uploadedUrl, penting: editPenting }),
+        body: JSON.stringify({ 
+          id: editId, 
+          judul: editJudul, 
+          isi: editIsi, 
+          foto: lFoto,
+          lampiranUrl: lUrl,
+          lampiranName: lName,
+          lampiranType: lType,
+          penting: editPenting 
+        }),
       })
       if (res.ok) {
         toast.success('Pengumuman berhasil diperbarui!')
@@ -179,6 +220,25 @@ export default function PengumumanAdmin() {
 
   if (!user || loadingData) return <SkeletonList count={2} />
 
+  const renderLampiranIndicator = (type, name, preview) => {
+    if (type === 'image' && preview) {
+      return (
+        <div style={{ marginTop: '8px', borderRadius: '8px', overflow: 'hidden', height: '120px', width: '200px', background: '#eee' }}>
+          <img src={preview} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        </div>
+      )
+    }
+    if (type === 'document' && name) {
+      return (
+        <div style={{ marginTop: '8px', padding: '12px', background: 'var(--color-bg)', border: '1px solid var(--color-border)', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <i className="ri-file-text-line" style={{ fontSize: '20px', color: 'var(--color-primary)' }} />
+          <span style={{ fontSize: '13px', color: 'var(--color-text)', fontWeight: 500, wordBreak: 'break-all' }}>{name}</span>
+        </div>
+      )
+    }
+    return null
+  }
+
   return (
     <>
       <div className="animate-fade-up" style={{ marginBottom: '24px' }}>
@@ -201,13 +261,9 @@ export default function PengumumanAdmin() {
           <textarea placeholder="Isi pengumuman..." value={isi} onChange={(e) => setIsi(e.target.value)} className="textarea-field" rows={3} required />
           
           <div>
-            <label className="form-label" style={{ fontSize: '13px' }}><i className="ri-image-add-line" /> Foto (Opsional)</label>
-            <input type="file" accept="image/*" onChange={(e) => handleFotoChange(e, false)} className="input-field" style={{ padding: '8px' }} />
-            {fotoPreview && (
-              <div style={{ marginTop: '8px', borderRadius: '8px', overflow: 'hidden', height: '120px', width: '200px', background: '#eee' }}>
-                <img src={fotoPreview} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              </div>
-            )}
+            <label className="form-label" style={{ fontSize: '13px' }}><i className="ri-attachment-line" /> Lampiran Foto / Dokumen (Opsional)</label>
+            <input type="file" accept="image/*, .pdf, .csv, .xls, .xlsx" onChange={(e) => handleLampiranChange(e, false)} className="input-field" style={{ padding: '8px' }} />
+            {renderLampiranIndicator(lampiranType, lampiranName, lampiranPreview)}
           </div>
 
           <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: 'var(--color-text-secondary)', cursor: 'pointer' }}>
@@ -228,57 +284,75 @@ export default function PengumumanAdmin() {
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {pengumumanList.map(p => (
-              <div key={p.id} className={`card${p.penting ? ' announcement-card penting' : ''}`}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <div style={{ flex: 1, paddingRight: '12px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
-                      {p.penting && <i className="ri-pushpin-fill" style={{ color: 'var(--color-accent)', fontSize: '14px' }} />}
-                      <p style={{ fontSize: '15px', fontWeight: 600, color: 'var(--color-text)', margin: 0 }}>{p.judul}</p>
+            {pengumumanList.map(p => {
+              const isDoc = p.lampiranType === 'document'
+              const isImg = p.lampiranType === 'image' || p.foto
+              return (
+                <div key={p.id} className={`card${p.penting ? ' announcement-card penting' : ''}`}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <div style={{ flex: 1, paddingRight: '12px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
+                        {p.penting && <i className="ri-pushpin-fill" style={{ color: 'var(--color-accent)', fontSize: '14px' }} />}
+                        <p style={{ fontSize: '15px', fontWeight: 600, color: 'var(--color-text)', margin: 0 }}>{p.judul}</p>
+                      </div>
+                      
+                      {isImg && (
+                        <div 
+                          onClick={() => setFullscreenFoto(p.lampiranUrl || p.foto)}
+                          style={{ marginBottom: '8px', borderRadius: '8px', overflow: 'hidden', width: '120px', height: '80px', background: '#eee', flexShrink: 0, cursor: 'pointer' }}
+                        >
+                          <img src={p.lampiranUrl || p.foto} alt="Foto" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        </div>
+                      )}
+                      
+                      {isDoc && (
+                        <a 
+                          href={p.lampiranUrl} 
+                          target="_blank" 
+                          rel="noreferrer"
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '8px 12px', background: 'var(--color-bg)', border: '1px solid var(--color-border)', borderRadius: '8px', textDecoration: 'none', color: 'var(--color-primary)', fontSize: '13px', fontWeight: 600, marginBottom: '8px' }}
+                        >
+                          <i className="ri-file-download-line" style={{ fontSize: '16px' }} />
+                          {p.lampiranName || 'Unduh Dokumen'}
+                        </a>
+                      )}
+
+                      <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', margin: '0 0 6px', lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>{p.isi}</p>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                        <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', margin: 0 }}>
+                          {new Date(p.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+                        </p>
+                        {p.pembuatRole && (
+                          <span
+                            className="badge"
+                            style={{
+                              fontSize: '9px',
+                              background: p.pembuatRole === 'ADMIN_RT' ? 'var(--color-primary)' : 'var(--color-accent)',
+                              color: '#fff',
+                            }}
+                          >
+                            {ROLE_LABELS[p.pembuatRole] || p.pembuatRole}
+                            {p.pembuatNama ? ` · ${p.pembuatNama}` : ''}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    {p.foto && (
-                      <div 
-                        onClick={() => setFullscreenFoto(p.foto)}
-                        style={{ marginBottom: '8px', borderRadius: '8px', overflow: 'hidden', width: '120px', height: '80px', background: '#eee', flexShrink: 0, cursor: 'pointer' }}
-                      >
-                        <img src={p.foto} alt="Foto" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    {canModify(p) && (
+                      <div style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
+                        {/* Tombol Edit */}
+                        <button onClick={() => handleMulaiEdit(p)} className="btn btn-ghost" style={{ color: 'var(--color-text-muted)', padding: '8px' }}>
+                          <i className="ri-edit-line" />
+                        </button>
+                        {/* Tombol Hapus */}
+                        <button onClick={() => setDeleteId(p.id)} className="btn btn-ghost" style={{ color: 'var(--color-danger)', padding: '8px' }}>
+                          <i className="ri-delete-bin-line" />
+                        </button>
                       </div>
                     )}
-                    <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', margin: '0 0 6px', lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>{p.isi}</p>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                      <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', margin: 0 }}>
-                        {new Date(p.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
-                      </p>
-                      {p.pembuatRole && (
-                        <span
-                          className="badge"
-                          style={{
-                            fontSize: '9px',
-                            background: p.pembuatRole === 'ADMIN_RT' ? 'var(--color-primary)' : 'var(--color-accent)',
-                            color: '#fff',
-                          }}
-                        >
-                          {ROLE_LABELS[p.pembuatRole] || p.pembuatRole}
-                          {p.pembuatNama ? ` · ${p.pembuatNama}` : ''}
-                        </span>
-                      )}
-                    </div>
                   </div>
-                  {canModify(p) && (
-                    <div style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
-                      {/* Tombol Edit */}
-                      <button onClick={() => handleMulaiEdit(p)} className="btn btn-ghost" style={{ color: 'var(--color-text-muted)', padding: '8px' }}>
-                        <i className="ri-edit-line" />
-                      </button>
-                      {/* Tombol Hapus */}
-                      <button onClick={() => setDeleteId(p.id)} className="btn btn-ghost" style={{ color: 'var(--color-danger)', padding: '8px' }}>
-                        <i className="ri-delete-bin-line" />
-                      </button>
-                    </div>
-                  )}
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
       </div>
@@ -295,13 +369,9 @@ export default function PengumumanAdmin() {
             <textarea value={editIsi} onChange={(e) => setEditIsi(e.target.value)} className="textarea-field" rows={4} required />
           </div>
           <div>
-            <label className="form-label" style={{ fontSize: '13px' }}><i className="ri-image-add-line" /> Foto (Opsional)</label>
-            <input type="file" accept="image/*" onChange={(e) => handleFotoChange(e, true)} className="input-field" style={{ padding: '8px' }} />
-            {editFotoPreview && (
-              <div style={{ marginTop: '8px', borderRadius: '8px', overflow: 'hidden', height: '120px', width: '200px', background: '#eee' }}>
-                <img src={editFotoPreview} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              </div>
-            )}
+            <label className="form-label" style={{ fontSize: '13px' }}><i className="ri-attachment-line" /> Lampiran Foto / Dokumen</label>
+            <input type="file" accept="image/*, .pdf, .csv, .xls, .xlsx" onChange={(e) => handleLampiranChange(e, true)} className="input-field" style={{ padding: '8px' }} />
+            {renderLampiranIndicator(editLampiranType, editLampiranName, editLampiranPreview)}
           </div>
           <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: 'var(--color-text-secondary)', cursor: 'pointer', margin: '4px 0' }}>
             <input type="checkbox" checked={editPenting} onChange={(e) => setEditPenting(e.target.checked)} style={{ width: '18px', height: '18px', accentColor: 'var(--color-accent)' }} />

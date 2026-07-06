@@ -23,7 +23,8 @@
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "remixicon": "^4.9.1",
-    "web-push": "^3.6.7"
+    "web-push": "^3.6.7",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

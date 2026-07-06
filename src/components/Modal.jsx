@@ -1,8 +1,14 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 
 export default function Modal({ isOpen, onClose, title, children, size = 'md' }) {
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden'
@@ -12,11 +18,11 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' })
     return () => { document.body.style.overflow = '' }
   }, [isOpen])
 
-  if (!isOpen) return null
+  if (!isOpen || !mounted) return null
 
   const maxW = size === 'sm' ? '340px' : size === 'lg' ? '520px' : '420px'
 
-  return (
+  return createPortal(
     <div className="modal-overlay" onClick={onClose}>
       <div
         className="modal-content"
@@ -40,6 +46,7 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' })
         )}
         {children}
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }

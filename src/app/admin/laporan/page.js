@@ -184,22 +184,36 @@ export default function LaporanBulanan() {
   const handleDownloadCSV = () => {
     if (dataBulanIni.length === 0 && pengeluaranBulanIni.length === 0) return toast.error('Tidak ada data untuk bulan ini')
     
-    let csvContent = 'No,Kategori,Keterangan,Tanggal/Blok,Status/Sumber,Jumlah (Rp)\n'
+    let csvContent = 'LAPORAN KEUANGAN BULANAN\n'
+    csvContent += `Periode: ${bulanFilter} ${tahunFilter}\n\n`
     
-    // Iuran
-    dataBulanIni.forEach((t, idx) => {
-      const isLunas = t.pembayaran?.status === 'SUCCESS'
-      csvContent += `${idx + 1},Iuran,"${t.user.nama}","Blok ${t.user.noRumah}","${isLunas ? 'LUNAS' : 'BELUM BAYAR'}",${t.jumlah}\n`
-    })
+    csvContent += 'A. RINGKASAN\n'
+    csvContent += `Total Pemasukan Iuran Lunas,Rp ${totalTerkumpul}\n`
+    csvContent += `Total Pengeluaran,Rp ${totalPengeluaran}\n`
+    csvContent += `Saldo Bulan Ini,Rp ${totalTerkumpul - totalPengeluaran}\n`
+    csvContent += `Total Iuran Belum Dibayar,Rp ${totalBelumMasuk}\n\n`
     
-    // Pengeluaran
-    pengeluaranBulanIni.forEach((p, idx) => {
-      csvContent += `${dataBulanIni.length + idx + 1},Pengeluaran,"${p.keperluan}","${new Date(p.createdAt).toLocaleDateString('id-ID')}","${p.sumber}",-${p.nominal}\n`
-    })
-
-    csvContent += `\nTotal Pemasukan Iuran Lunas,,,,${totalTerkumpul}\n`
-    csvContent += `Total Pengeluaran,,,,-${totalPengeluaran}\n`
-    csvContent += `Saldo Bulan Ini,,,,${totalTerkumpul - totalPengeluaran}\n`
+    csvContent += 'B. RINCIAN PEMASUKAN IURAN\n'
+    csvContent += 'No,Nama Warga,Blok / No,Status,Jumlah (Rp)\n'
+    if (dataBulanIni.length === 0) {
+      csvContent += 'Tidak ada data iuran pada bulan ini.\n'
+    } else {
+      dataBulanIni.forEach((t, idx) => {
+        const isLunas = t.pembayaran?.status === 'SUCCESS'
+        csvContent += `${idx + 1},"${t.user.nama}","Blok ${t.user.noRumah}","${isLunas ? 'LUNAS' : 'BELUM BAYAR'}",${t.jumlah}\n`
+      })
+    }
+    csvContent += '\n'
+    
+    csvContent += 'C. RINCIAN PENGELUARAN\n'
+    csvContent += 'No,Tanggal,Keperluan,Sumber Dana,Nominal (Rp)\n'
+    if (pengeluaranBulanIni.length === 0) {
+      csvContent += 'Tidak ada pengeluaran pada bulan ini.\n'
+    } else {
+      pengeluaranBulanIni.forEach((p, idx) => {
+        csvContent += `${idx + 1},"${new Date(p.createdAt).toLocaleDateString('id-ID')}","${p.keperluan}","${p.sumber}",${p.nominal}\n`
+      })
+    }
 
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
