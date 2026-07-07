@@ -11,6 +11,7 @@ const allNavItems = [
   { href: '/admin/laporan', icon: 'ri-file-chart-line', label: 'Laporan Bulanan', roles: ['ADMIN_IURAN', 'ADMIN_RT'] },
   { href: '/admin/pengumuman', icon: 'ri-megaphone-line', label: 'Pengumuman', roles: ['ADMIN_IURAN', 'ADMIN_RT'] },
   { href: '/admin/aktivitas', icon: 'ri-radar-line', label: 'Aktivitas Admin', roles: ['ADMIN_IURAN', 'ADMIN_RT'] },
+  { href: '/warga', icon: 'ri-user-line', label: 'Tampilan Warga', roles: ['ADMIN_IURAN', 'ADMIN_RT'] },
 ]
 
 const roleLabels = {

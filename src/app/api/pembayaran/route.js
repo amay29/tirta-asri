@@ -75,6 +75,11 @@ export async function PUT(request) {
       return NextResponse.json({ pesan: 'Pembayaran ini sudah disetujui sebelumnya' }, { status: 400 })
     }
 
+    const adminUser = await prisma.user.findUnique({ where: { id: parseInt(userId) } })
+    const disetujuiOlehName = adminUser 
+      ? `${adminUser.role === 'ADMIN_RT' ? 'Ketua RT' : 'Admin Iuran'} (${adminUser.nama})` 
+      : 'Sistem'
+
     // Dua perubahan (status Pembayaran + status Tagihan) dibungkus dalam
     // satu transaction Prisma. Ini menjamin keduanya berhasil bersamaan,
     // atau gagal bersamaan — tidak mungkin ada keadaan "Pembayaran sudah
@@ -82,7 +87,10 @@ export async function PUT(request) {
     const hasil = await prisma.$transaction([
       prisma.pembayaran.update({
         where: { id: pembayaran.id },
-        data: { status: 'SUCCESS' },
+        data: { 
+          status: 'SUCCESS',
+          disetujuiOleh: disetujuiOlehName,
+        },
       }),
       prisma.tagihan.update({
         where: { id: pembayaran.tagihanId },

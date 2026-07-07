@@ -105,6 +105,11 @@ export default function RiwayatDanaMasuk() {
                     <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', margin: '2px 0 0' }}>
                       {new Date(t.pembayaran.createdAt).toLocaleString('id-ID')}
                     </p>
+                    {t.pembayaran.disetujuiOleh && (
+                      <p style={{ fontSize: '11px', color: 'var(--color-text-secondary)', margin: '2px 0 0', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <i className="ri-shield-user-line" style={{ color: 'var(--color-primary)' }} /> Acc: {t.pembayaran.disetujuiOleh}
+                      </p>
+                    )}
                   </div>
                   <div style={{ textAlign: 'right' }}>
                     <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', margin: '0 0 2px' }}>{t.pembayaran.metodeBayar}</p>

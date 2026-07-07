@@ -6,11 +6,14 @@ import bcrypt from 'bcryptjs'
 export async function GET() {
   try {
     const warga = await prisma.user.findMany({
-      where: { role: 'WARGA' },
+      where: {
+        role: { in: ['WARGA', 'ADMIN_RT', 'ADMIN_IURAN'] }
+      },
       select: {
         id: true,
         nama: true,
         noRumah: true,
+        role: true,
         createdAt: true,
         tagihan: {
           include: { pembayaran: true },

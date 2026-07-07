@@ -6,7 +6,7 @@ import BottomNav from '@/components/BottomNav'
 import { SkeletonDashboard } from '@/components/Skeleton'
 
 export default function WargaLayout({ children }) {
-  const { user, loading, logout } = useAuth('WARGA')
+  const { user, loading, logout } = useAuth(['WARGA', 'ADMIN_RT', 'ADMIN_IURAN'])
 
   if (loading || !user) {
     return (
@@ -24,7 +24,7 @@ export default function WargaLayout({ children }) {
         <div className="page-container pb-safe">
           {children}
         </div>
-        <BottomNav onLogout={logout} />
+        <BottomNav onLogout={logout} user={user} />
       </div>
     </ToastProvider>
   )

@@ -28,7 +28,7 @@ function statusTampilan(t) {
 }
 
 export default function WargaDashboard() {
-  const { user } = useAuth('WARGA')
+  const { user } = useAuth(['WARGA', 'ADMIN_RT', 'ADMIN_IURAN'])
   const toast = useToast()
   const [tagihanList, setTagihanList] = useState([])
   const [pengumuman, setPengumuman] = useState([])

@@ -1,36 +1,108 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Tirta Asri Residence Community Portal
 
-## Getting Started
+A modern, mobile-first Progressive Web Application (PWA) designed to simplify neighborhood community management. Built specifically for **Tirta Asri Residence**, this portal handles financial transparency, document requests, push notifications, and administrative bookkeeping under a single platform.
 
-First, run the development server:
+---
 
+## 🌟 Key Features
+
+### 👤 Multi-Role Dashboard
+* **Warga (Residents):** View monthly dues, make mock payments (QRIS, Bank Transfer with receipt upload, Cash), request official letters, and view community announcements.
+* **Admin Iuran (Treasurer):** Manage and audit finances, create monthly billings (individually or in bulk), and record neighborhood expenses.
+* **Ketua RT (RT Chairman):** Review and process official letters (Domisili, Surat Pengantar, etc.) with pre-formatted printable PDFs, download overall Excel financial backups, and manage resident registries.
+* **Seamless Panel Switcher:** Since administrators are also local residents, the system provides a seamless navigation shortcut to toggle between the Admin Panel and Warga View to pay their own dues or request personal letters.
+
+### 💰 Financial Transparency & Ledger
+* **Categorized Cashflow:** Automatically divides cash flow into **Saldo Bank** (digital funds via QRIS and manual transfers) and **Kas Tunai** (physical cash handed to administrators).
+* **Payment Approval Workflow:** Real-time auditing of manual bank transfers and cash payments with automated logs of which administrator verified and approved the transaction.
+* **Laporan Bulanan (Monthly Reports):** Generate comprehensive financial summaries including ledger sheets and detailed resident contributions, exportable to printable PDF or spreadsheet-ready CSV.
+
+### 📄 Digital Letter Requests (Surat)
+* Residents can submit requests for official documents (e.g., Certificate of Residence, RT Cover Letter).
+* RT Chairman can approve, reject, or edit contents on the fly.
+* Generates an official, print-ready A4 PDF document styled with proper letterhead (Kop Surat).
+
+### 🔔 PWA & Web Push Notifications
+* **App-like Experience:** Fully installable to Android, iOS, and desktop screens with a customized manifest.
+* **Real-time Push Notifications:** Powered by the Web Push Protocol (VAPID). Sends instant push notifications when:
+  * A new billing cycle is generated.
+  * A resident submits a new payment or letter request.
+  * An administrator approves or rejects a payment or letter.
+  * A crucial announcement is published.
+  * A billing deadline is approaching (automated checker).
+
+---
+
+## 🛠️ Tech Stack
+
+* **Frontend Framework:** [Next.js](https://nextjs.org/) (App Router, React Server/Client Components)
+* **Styling:** Vanilla CSS (Tailored variables, dark/glassmorphic aesthetics)
+* **Database & ORM:** [PostgreSQL](https://www.postgresql.org/) with [Prisma ORM](https://www.prisma.io/)
+* **Push Notifications:** [Web-Push](https://github.com/web-push-libs/web-push) (VAPID protocol)
+* **Utilities:**
+  * [jsPDF](https://github.com/parallax/jsPDF) & [jsPDF-AutoTable](https://github.com/simonbengtsson/jsPDF-AutoTable) (PDF Generation)
+  * [XLSX (SheetJS)](https://github.com/SheetJS/sheetjs) (Excel Import/Export)
+  * [QRCode.react](https://github.com/zpao/qrcode.react) (QRIS Code Generation)
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+* Node.js (v18 or higher)
+* Docker & Docker Compose (for running the local database)
+
+### Installation & Setup
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/your-username/tirta-asri.git
+   cd tirta-asri
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+3. **Configure Environment Variables:**
+   Create a `.env` file in the root directory and define the following variables:
+   ```env
+   # Database connection
+   DATABASE_URL="postgresql://tirta:tirta123@localhost:5432/tirta_asri"
+
+   # VAPID Keys for Push Notifications
+   # Generate using: npx web-push generate-vapid-keys
+   NEXT_PUBLIC_VAPID_PUBLIC_KEY="YOUR_PUBLIC_KEY"
+   VAPID_PRIVATE_KEY="YOUR_PRIVATE_KEY"
+   ```
+
+4. **Spin up local PostgreSQL database:**
+   ```bash
+   docker-compose up -d
+   ```
+
+5. **Run Prisma Migrations & Generate Client:**
+   ```bash
+   npx prisma db push
+   npx prisma generate
+   ```
+
+6. **Start the Development Server:**
+   ```bash
+   npm run dev
+   ```
+   Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+### Building for Production
+
+To create an optimized production build:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm run build
+npm run start
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 📝 License
+This project is open-source and available under the [MIT License](LICENSE).

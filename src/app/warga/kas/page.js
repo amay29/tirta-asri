@@ -7,7 +7,7 @@ import EmptyState from '@/components/EmptyState'
 import { SkeletonList } from '@/components/Skeleton'
 
 export default function KasRTPaage() {
-  const { user } = useAuth('WARGA')
+  const { user } = useAuth(['WARGA', 'ADMIN_RT', 'ADMIN_IURAN'])
   const [kasData, setKasData] = useState(null)
   const [loadingData, setLoadingData] = useState(true)
 

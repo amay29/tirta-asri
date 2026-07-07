@@ -201,10 +201,14 @@ export default function KelolaWarga() {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <div>
                       <p style={{ fontSize: '16px', fontWeight: 600, color: 'var(--color-text)', margin: 0 }}>{w.nama}</p>
-                      <span className="badge badge-neutral" style={{ fontSize: '12px', marginTop: '4px' }}>Blok {w.noRumah}</span>
+                      <div style={{ display: 'flex', gap: '6px', alignItems: 'center', marginTop: '4px', flexWrap: 'wrap' }}>
+                        <span className="badge badge-neutral" style={{ fontSize: '12px' }}>Blok {w.noRumah}</span>
+                        {w.role === 'ADMIN_RT' && <span className="badge badge-primary" style={{ fontSize: '10px' }}>Ketua RT</span>}
+                        {w.role === 'ADMIN_IURAN' && <span className="badge badge-accent" style={{ fontSize: '10px' }}>Admin Iuran</span>}
+                      </div>
                     </div>
                     <div style={{ display: 'flex', gap: '4px' }}>
-                      {user?.role === 'ADMIN_RT' && (
+                      {user?.role === 'ADMIN_RT' && w.role === 'WARGA' && (
                         <div className="dropdown" style={{ position: 'relative' }}>
                           <button
                             onClick={(e) => {

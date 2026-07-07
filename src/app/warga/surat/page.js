@@ -17,7 +17,7 @@ const JENIS_SURAT = [
 ]
 
 export default function SuratWarga() {
-  const { user } = useAuth('WARGA')
+  const { user } = useAuth(['WARGA', 'ADMIN_RT', 'ADMIN_IURAN'])
   const toast = useToast()
   const [suratList, setSuratList] = useState([])
   const [loadingData, setLoadingData] = useState(true)
