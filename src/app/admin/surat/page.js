@@ -28,7 +28,6 @@ export default function SuratAdmin() {
   const [loadingData, setLoadingData] = useState(true)
   const [filterStatus, setFilterStatus] = useState('Semua')
 
-  // State untuk editing isi surat
   const [editingId, setEditingId] = useState(null)
   const [editContent, setEditContent] = useState('')
   const [menyimpanId, setMenyimpanId] = useState(null)
@@ -156,7 +155,7 @@ export default function SuratAdmin() {
                   </div>
                 )}
 
-                {/* Editor Section */}
+                {}
                 {editingId === s.id ? (
                   <div style={{ marginTop: '10px', marginBottom: '14px' }}>
                     <label className="form-label" style={{ fontSize: '12px', marginBottom: '6px' }}>Edit Isi Dokumen Sebelum Dicetak:</label>
@@ -199,7 +198,7 @@ export default function SuratAdmin() {
                   </p>
 
                   <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                    {/* Tombol Edit Isi */}
+                    {}
                     {editingId !== s.id && (
                       <button
                         onClick={() => mulaiEdit(s)}
@@ -210,7 +209,7 @@ export default function SuratAdmin() {
                       </button>
                     )}
 
-                    {/* Tombol Cetak PDF */}
+                    {}
                     {(s.status === 'SELESAI' || s.status === 'DIPROSES') && (
                       <Link
                         href={`/cetak/surat/${s.id}`}

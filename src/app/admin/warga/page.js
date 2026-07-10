@@ -24,8 +24,7 @@ export default function KelolaWarga() {
   const [searchQuery, setSearchQuery] = useState('')
   const [showTagihanModal, setShowTagihanModal] = useState(false)
   const [selectedWarga, setSelectedWarga] = useState(null)
-  
-  // States for Tagihan
+
   const [bulanBaru, setBulanBaru] = useState(BULAN_LIST[new Date().getMonth()])
   const [tahunBaru, setTahunBaru] = useState(new Date().getFullYear())
   const [jumlahBaru, setJumlahBaru] = useState('50000')
@@ -33,7 +32,6 @@ export default function KelolaWarga() {
   const [showBulkModal, setShowBulkModal] = useState(false)
   const [bulkLoading, setBulkLoading] = useState(false)
 
-  // States for CRUD Warga
   const [showWargaModal, setShowWargaModal] = useState(false)
   const [editMode, setEditMode] = useState(false)
   const [formWarga, setFormWarga] = useState({ id: '', nama: '', noRumah: '', pin: '' })
@@ -54,7 +52,6 @@ export default function KelolaWarga() {
 
   useEffect(() => { if (user) ambilWarga() }, [user])
 
-  // --- CRUD Warga Functions ---
   const handleSimpanWarga = async () => {
     if (!formWarga.nama || !formWarga.noRumah) return toast.error('Nama dan Nomor Rumah wajib diisi')
     if (!editMode && (!formWarga.pin || formWarga.pin.length !== 6)) return toast.error('PIN 6 angka wajib diisi')
@@ -112,7 +109,6 @@ export default function KelolaWarga() {
     setShowWargaModal(true)
   }
 
-  // --- Tagihan Functions ---
   const handleBuatTagihan = async () => {
     if (!selectedWarga) return
     try {
@@ -280,7 +276,7 @@ export default function KelolaWarga() {
         )}
       </div>
 
-      {/* CRUD Warga Modal */}
+      {}
       <Modal isOpen={showWargaModal} onClose={() => setShowWargaModal(false)} title={editMode ? 'Edit Data Warga' : 'Tambah Warga Baru'} size="sm">
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <div>
@@ -303,7 +299,7 @@ export default function KelolaWarga() {
         </div>
       </Modal>
 
-      {/* Single Tagihan Modal */}
+      {}
       <Modal isOpen={showTagihanModal} onClose={() => setShowTagihanModal(false)} title={`Buat Tagihan — ${selectedWarga?.nama}`} size="sm">
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <div>
@@ -330,7 +326,7 @@ export default function KelolaWarga() {
         </div>
       </Modal>
 
-      {/* Bulk Modal */}
+      {}
       <Modal isOpen={showBulkModal} onClose={() => setShowBulkModal(false)} title="Tagihan Massal" size="sm">
         <p style={{ fontSize: '14px', color: 'var(--color-text-secondary)', margin: '0 0 16px', lineHeight: 1.5 }}>
           Buat tagihan untuk <strong>semua {wargaList.length} warga</strong> sekaligus.

@@ -33,7 +33,7 @@ export default function NotificationButton() {
     setSubscribing(true)
 
     try {
-      // Request permission
+
       const perm = await Notification.requestPermission()
       setPermission(perm)
 
@@ -42,10 +42,8 @@ export default function NotificationButton() {
         return
       }
 
-      // Get service worker registration
       const registration = await navigator.serviceWorker.ready
 
-      // Subscribe to push
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(
@@ -53,7 +51,6 @@ export default function NotificationButton() {
         ),
       })
 
-      // Kirim subscription ke server
       const user = getSession()
       if (user) {
         await fetch('/api/notification/subscribe', {
@@ -72,7 +69,6 @@ export default function NotificationButton() {
     }
   }
 
-  // Jangan tampilkan jika sudah granted atau browser tidak support
   if (typeof window !== 'undefined' && !('Notification' in window)) return null
   if (permission === 'granted') return null
   if (permission === 'denied') return null

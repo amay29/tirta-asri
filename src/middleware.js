@@ -4,7 +4,6 @@ import { verifyJwt } from '@/lib/jwt'
 export async function middleware(request) {
   const { pathname } = request.nextUrl
 
-  // Rute API yang tidak perlu diproteksi
   if (
     pathname.startsWith('/api/auth/login') ||
     pathname.startsWith('/api/auth/register')
@@ -12,7 +11,6 @@ export async function middleware(request) {
     return NextResponse.next()
   }
 
-  // Rute yang perlu diproteksi
   const isApiRoute = pathname.startsWith('/api/')
   const isAdminRoute = pathname.startsWith('/admin')
   const isWargaRoute = pathname.startsWith('/warga')
@@ -36,12 +34,10 @@ export async function middleware(request) {
       return NextResponse.redirect(new URL('/login', request.url))
     }
 
-    // Role check untuk rute admin
     if (isAdminRoute && !['ADMIN_RT', 'ADMIN_IURAN'].includes(payload.role)) {
       return NextResponse.redirect(new URL('/warga', request.url))
     }
 
-    // Teruskan informasi user ke headers untuk bisa dibaca di route handlers API
     if (isApiRoute) {
       const requestHeaders = new Headers(request.headers)
       requestHeaders.set('x-user-id', payload.id.toString())

@@ -10,7 +10,7 @@ export default function PWAInstallButton() {
   const [os, setOs] = useState('unknown')
 
   useEffect(() => {
-    // Deteksi OS
+
     const userAgent = window.navigator.userAgent.toLowerCase()
     if (/iphone|ipad|ipod/.test(userAgent)) {
       setOs('ios')
@@ -18,7 +18,6 @@ export default function PWAInstallButton() {
       setOs('android')
     }
 
-    // Cek apakah sudah di-install sebagai PWA
     if (window.matchMedia('(display-mode: standalone)').matches) {
       setIsInstalled(true)
       return
@@ -31,7 +30,6 @@ export default function PWAInstallButton() {
 
     window.addEventListener('beforeinstallprompt', handler)
 
-    // Deteksi setelah install
     window.addEventListener('appinstalled', () => {
       setIsInstalled(true)
       setDeferredPrompt(null)
@@ -43,7 +41,7 @@ export default function PWAInstallButton() {
 
   const handleInstall = async () => {
     if (!deferredPrompt) {
-      // Tampilkan instruksi manual jika native prompt tidak tersedia
+
       setShowManualModal(true)
       return
     }

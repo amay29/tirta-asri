@@ -12,8 +12,7 @@ export async function GET(request, { params }) {
     }
 
     const fileBuffer = fs.readFileSync(filepath)
-    
-    // Tentukan Content-Type berdasarkan ekstensi
+
     const ext = path.extname(filepath).toLowerCase()
     let contentType = 'application/octet-stream'
     if (ext === '.jpg' || ext === '.jpeg') contentType = 'image/jpeg'

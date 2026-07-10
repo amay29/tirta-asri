@@ -44,7 +44,6 @@ export default function CetakSurat({ params }) {
   const templateFn = ISI_TEMPLATE[surat.jenisSurat] || ISI_TEMPLATE['Surat Pengantar RT']
   const isiSurat = surat.isiSurat || templateFn(surat.user.nama, surat.user.noRumah)
 
-
   const handleDownloadPdf = () => {
     if (typeof window === 'undefined' || !window.html2pdf) {
       alert('Sistem sedang menyiapkan berkas PDF. Mohon coba sesaat lagi.')
@@ -77,13 +76,13 @@ export default function CetakSurat({ params }) {
 
   return (
     <>
-      {/* Script to load html2pdf.js */}
+      {}
       <Script
         src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"
         strategy="lazyOnload"
       />
 
-      {/* Action Button */}
+      {}
       <div className="no-print" style={{
         position: 'fixed', bottom: '24px', right: '24px', zIndex: 100,
         display: 'flex', gap: '8px',
@@ -111,14 +110,14 @@ export default function CetakSurat({ params }) {
         </button>
       </div>
 
-      {/* Surat Content */}
+      {}
       <div style={{ minHeight: '100vh', background: '#e8e4de', padding: '32px 16px' }}>
         <div id="surat-content" style={{
           maxWidth: '210mm', margin: '0 auto', background: '#fff',
           padding: '48px 56px', boxShadow: '0 2px 20px rgba(0,0,0,0.08)',
           fontFamily: 'Times New Roman, serif', color: '#111', lineHeight: 1.6,
         }}>
-          {/* Kop Surat */}
+          {}
           <div style={{ textAlign: 'center', borderBottom: '3px double #333', paddingBottom: '16px', marginBottom: '24px' }}>
             <h1 style={{ fontSize: '18px', fontWeight: 700, margin: 0, letterSpacing: '1px' }}>RUKUN TETANGGA (RT)</h1>
             <h2 style={{ fontSize: '22px', fontWeight: 700, margin: '4px 0 0' }}>PERUMAHAN TIRTA ASRI RESIDENCE</h2>
@@ -131,7 +130,7 @@ export default function CetakSurat({ params }) {
             </div>
           ) : (
             <>
-              {/* Judul Surat */}
+              {}
               <div style={{ textAlign: 'center', marginBottom: '24px' }}>
                 <h3 style={{ fontSize: '16px', fontWeight: 700, textDecoration: 'underline', margin: '0 0 4px' }}>
                   {surat.jenisSurat.toUpperCase()}
@@ -141,7 +140,7 @@ export default function CetakSurat({ params }) {
                 </p>
               </div>
 
-              {/* Isi */}
+              {}
               <div style={{ fontSize: '14px', marginBottom: '16px', whiteSpace: 'pre-line' }}>
                 {isiSurat}
               </div>
@@ -152,7 +151,7 @@ export default function CetakSurat({ params }) {
             </>
           )}
 
-          {/* Tanda tangan */}
+          {}
           <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
             <div style={{ textAlign: 'center', minWidth: '200px' }}>
               <p style={{ fontSize: '13px', margin: '0 0 4px' }}>Bandung, {tanggal}</p>

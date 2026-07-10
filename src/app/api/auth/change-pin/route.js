@@ -3,7 +3,6 @@ import bcrypt from 'bcryptjs'
 import { prisma } from '@/lib/prisma'
 import { logAudit } from '@/lib/audit'
 
-// POST /api/auth/change-pin — Warga mengubah PIN mereka
 export async function POST(request) {
   try {
     const requesterId = request.headers.get('x-user-id')

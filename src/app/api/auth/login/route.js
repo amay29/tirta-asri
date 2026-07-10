@@ -17,15 +17,12 @@ export async function POST(request) {
       return NextResponse.json({ pesan: 'Nomor rumah atau PIN salah' }, { status: 401 })
     }
 
-    // Jangan kirim password hash ke client
     const { password, ...userAman } = user
 
-    // Buat JWT Token
     const token = await signJwt({ id: user.id, role: user.role })
 
     const response = NextResponse.json({ pesan: 'Login berhasil', user: userAman })
 
-    // Set HTTP-only cookie
     response.cookies.set('session_token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production' && request.headers.get('x-forwarded-proto') === 'https',

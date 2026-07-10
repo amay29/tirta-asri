@@ -42,7 +42,6 @@ export default function AktivitasAdmin() {
     return <i className="ri-history-line" style={{ color: 'var(--color-primary)' }} />
   }
 
-  // Filter log
   const keuanganLogs = logs.filter(log => KEUANGAN_ACTIONS.includes(log.action))
   const sistemLogs = logs.filter(log => !KEUANGAN_ACTIONS.includes(log.action))
 

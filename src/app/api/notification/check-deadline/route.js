@@ -13,7 +13,6 @@ export async function GET() {
     d1.setDate(d1.getDate() + 1)
     d1.setHours(23, 59, 59, 999)
 
-    // Ambil tagihan yang deadline-nya dalam 3 hari dan belum bayar
     const tagihanDeadline = await prisma.tagihan.findMany({
       where: {
         deadline: { lte: d3, gte: now },

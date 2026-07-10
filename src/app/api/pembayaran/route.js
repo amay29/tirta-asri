@@ -30,13 +30,10 @@ export async function POST(request) {
         metodeBayar,
         status: 'PENDING',
         buktiTransfer: buktiTransfer || null,
-        // midtransId sengaja dikosongkan (null) — field ini disiapkan
-        // untuk integrasi Midtrans sungguhan nanti. Untuk sekarang,
-        // alur pembayaran masih simulasi manual yang dikonfirmasi admin.
+
       },
     })
 
-    // Kirim notifikasi push ke ADMIN_IURAN
     try {
       const tData = await prisma.tagihan.findUnique({ where: { id: tagihan.id }, include: { user: { select: { nama: true } } } })
       await sendPushToRole(prisma, 'ADMIN_IURAN', {
@@ -53,10 +50,6 @@ export async function POST(request) {
   }
 }
 
-// PUT /api/pembayaran
-// Dipakai ADMIN untuk approve pembayaran (PENDING -> SUCCESS) sekaligus
-// mengubah status Tagihan terkait jadi SUDAH_BAYAR.
-// Body: { pembayaranId }
 export async function PUT(request) {
   try {
     const role = request.headers.get('x-user-role')
@@ -80,10 +73,6 @@ export async function PUT(request) {
       ? `${adminUser.role === 'ADMIN_RT' ? 'Ketua RT' : 'Admin Iuran'} (${adminUser.nama})` 
       : 'Sistem'
 
-    // Dua perubahan (status Pembayaran + status Tagihan) dibungkus dalam
-    // satu transaction Prisma. Ini menjamin keduanya berhasil bersamaan,
-    // atau gagal bersamaan — tidak mungkin ada keadaan "Pembayaran sudah
-    // SUCCESS tapi Tagihan masih BELUM_BAYAR" akibat error di tengah jalan.
     const hasil = await prisma.$transaction([
       prisma.pembayaran.update({
         where: { id: pembayaran.id },
@@ -98,7 +87,6 @@ export async function PUT(request) {
       }),
     ])
 
-    // Catat ke histori aktivitas
     try {
       const tData = await prisma.tagihan.findUnique({ where: { id: pembayaran.tagihanId }, include: { user: true } })
       if (tData && userId) {
@@ -114,7 +102,6 @@ export async function PUT(request) {
       console.error('AuditLog error:', e)
     }
 
-    // Notifikasi ke warga bahwa pembayaran disetujui
     try {
       const tData = await prisma.tagihan.findUnique({ where: { id: pembayaran.tagihanId }, select: { userId: true, bulan: true, tahun: true } })
       if (tData) {

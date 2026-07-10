@@ -26,7 +26,6 @@ export default function SuratWarga() {
   const [mengirim, setMengirim] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
 
-  // Edit / Batal state
   const [showEdit, setShowEdit] = useState(false)
   const [showBatal, setShowBatal] = useState(false)
   const [selectedSurat, setSelectedSurat] = useState(null)
@@ -133,7 +132,7 @@ export default function SuratWarga() {
 
   return (
     <>
-      {/* Header */}
+      {}
       <div className="animate-fade-up" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
         <div>
           <p className="label-small" style={{ marginBottom: '4px' }}>Tirta Asri Residence</p>
@@ -144,7 +143,7 @@ export default function SuratWarga() {
         </Link>
       </div>
 
-      {/* Form */}
+      {}
       <div className="card animate-fade-up delay-1" style={{ marginBottom: '16px' }}>
         <p style={{ fontSize: '15px', fontWeight: 600, color: 'var(--color-text)', margin: '0 0 16px' }}>
           <i className="ri-add-line" style={{ marginRight: '6px' }} />
@@ -179,7 +178,7 @@ export default function SuratWarga() {
         </button>
       </div>
 
-      {/* Riwayat */}
+      {}
       <div className="animate-fade-up delay-2">
         <p style={{ fontSize: '16px', fontWeight: 600, color: 'var(--color-text)', margin: '0 0 12px' }}>Riwayat Pengajuan</p>
 
@@ -224,7 +223,7 @@ export default function SuratWarga() {
         )}
       </div>
 
-      {/* Confirm Modal */}
+      {}
       <Modal isOpen={showConfirm} onClose={() => setShowConfirm(false)} title="Konfirmasi Pengajuan" size="sm">
         <p style={{ fontSize: '14px', color: 'var(--color-text-secondary)', margin: '0 0 8px', lineHeight: 1.5 }}>
           Anda akan mengajukan:
@@ -241,7 +240,7 @@ export default function SuratWarga() {
         </div>
       </Modal>
 
-      {/* Edit Modal */}
+      {}
       <Modal isOpen={showEdit} onClose={() => setShowEdit(false)} title="Ubah Pengajuan Surat" size="sm">
         <div style={{ marginBottom: '14px' }}>
           <label className="form-label">Jenis Surat</label>
@@ -264,7 +263,7 @@ export default function SuratWarga() {
         </button>
       </Modal>
 
-      {/* Batal Modal */}
+      {}
       <Modal isOpen={showBatal} onClose={() => setShowBatal(false)} title="Batalkan Pengajuan" size="sm">
         <p style={{ fontSize: '14px', color: 'var(--color-text-secondary)', margin: '0 0 16px', lineHeight: 1.5 }}>
           Apakah Anda yakin ingin membatalkan pengajuan <strong>{selectedSurat?.jenisSurat}</strong>? Pengajuan yang dibatalkan akan dihapus dan tidak dapat dikembalikan.

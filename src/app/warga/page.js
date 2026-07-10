@@ -62,7 +62,6 @@ export default function WargaDashboard() {
       if (tRes.ok) { const t = await tRes.json(); setTagihanList(t.tagihan || []) }
       if (pRes.ok) { const p = await pRes.json(); setPengumuman(p.pengumuman || []) }
 
-      // Hitung transparansi kas
       if (allTRes.ok && expRes.ok) {
         const allTagihan = (await allTRes.json()).tagihan || []
         const allPengeluaran = (await expRes.json()).riwayatPengeluaran || []
@@ -153,7 +152,6 @@ export default function WargaDashboard() {
     }
   }
 
-  // Countdown timer for QRIS
   useEffect(() => {
     if (showPayModal && paymentStep === 'scanning') {
       const interval = setInterval(() => {
@@ -207,7 +205,7 @@ export default function WargaDashboard() {
 
   return (
     <>
-      {/* Header */}
+      {}
       <div className="animate-fade-up" style={{ marginBottom: '24px' }}>
         <p className="label-small" style={{ marginBottom: '4px' }}>Tirta Asri Residence</p>
         <h1 className="section-title" style={{ fontSize: '24px' }}>
@@ -216,13 +214,13 @@ export default function WargaDashboard() {
         <p className="section-subtitle">Blok {user.noRumah}</p>
       </div>
 
-      {/* PWA & Notifications */}
+      {}
       <div className="animate-fade-up">
         <PWAInstallButton />
         <NotificationButton />
       </div>
 
-      {/* Pengumuman */}
+      {}
       {pengumuman.length > 0 && (
         <div className="animate-fade-up delay-1" style={{ marginBottom: '16px' }}>
           {pengumuman.slice(0, 2).map(p => (
@@ -277,7 +275,7 @@ export default function WargaDashboard() {
         </div>
       )}
 
-      {/* Summary Card */}
+      {}
       {belumBayar.length > 0 && (
         <div className="stat-card stat-card-dark animate-fade-up delay-2" style={{ marginBottom: '16px' }}>
           <p className="stat-label" style={{ color: '#5a9e8a' }}>Tagihan Belum Dibayar</p>
@@ -286,7 +284,7 @@ export default function WargaDashboard() {
         </div>
       )}
 
-      {/* === TRANSPARANSI KAS RT === */}
+      {}
       {kasData && (
         <div className="card animate-fade-up delay-1" style={{ marginBottom: '16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
@@ -309,7 +307,7 @@ export default function WargaDashboard() {
         </div>
       )}
 
-      {/* Quick Actions */}
+      {}
       <Link href="/warga/surat" className="animate-fade-up delay-2" style={{
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         background: 'var(--color-card)', border: '1px solid var(--color-border-light)',
@@ -342,7 +340,7 @@ export default function WargaDashboard() {
         <i className="ri-arrow-right-s-line" style={{ fontSize: '20px', color: 'var(--color-text-muted)' }} />
       </button>
 
-      {/* Tagihan List */}
+      {}
       <div className="animate-fade-up delay-3" id="iuran">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
           <div>
@@ -422,7 +420,7 @@ export default function WargaDashboard() {
         )}
       </div>
 
-      {/* Payment Modal */}
+      {}
       <Modal
         isOpen={showPayModal}
         onClose={() => setShowPayModal(false)}
@@ -470,7 +468,7 @@ export default function WargaDashboard() {
 
         {paymentStep === 'scanning' && (
           <div style={{ textAlign: 'center' }}>
-            {/* Countdown bar */}
+            {}
             <div style={{ marginBottom: '16px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '4px' }}>
                 <span style={{ color: 'var(--color-danger)', fontWeight: 600 }}>
@@ -531,7 +529,7 @@ export default function WargaDashboard() {
         )}
       </Modal>
 
-      {/* Ubah PIN Modal */}
+      {}
       <Modal isOpen={showPinModal} onClose={() => setShowPinModal(false)} title="Ubah PIN" size="sm">
         <form>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -560,7 +558,7 @@ export default function WargaDashboard() {
         </form>
       </Modal>
 
-      {/* Fullscreen Image Modal */}
+      {}
       <Modal isOpen={!!fullscreenFoto} onClose={() => setFullscreenFoto(null)} title="Foto Pengumuman" size="lg">
         {fullscreenFoto && (
           <img src={fullscreenFoto} alt="Fullscreen" style={{ width: '100%', height: 'auto', borderRadius: '8px' }} />

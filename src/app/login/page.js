@@ -55,7 +55,6 @@ export default function Login() {
         return
       }
 
-      // Simpan session
       const userData = JSON.stringify({ ...hasil.user, loginAt: Date.now() })
       try {
         localStorage.setItem('tirtaAsriUser', userData)
@@ -64,7 +63,6 @@ export default function Login() {
       }
       document.cookie = `tirtaAsriUser=${encodeURIComponent(userData)}; path=/; max-age=86400; SameSite=Lax`
 
-      // Bersihkan cache service worker lama agar tidak menghalangi redirect
       if ('caches' in window) {
         try {
           const keys = await caches.keys()
@@ -73,8 +71,7 @@ export default function Login() {
       }
 
       const target = ['ADMIN_IURAN', 'ADMIN_RT'].includes(hasil.user.role) ? '/admin' : '/warga'
-      
-      // Gunakan router.push agar navigasi berjalan sebagai SPA
+
       setTimeout(() => {
         router.push(target)
       }, 100)
@@ -93,7 +90,7 @@ export default function Login() {
 
   return (
     <div className="auth-page">
-      {/* Hero Side */}
+      {}
       <div className="auth-hero" style={{ position: 'relative', minHeight: '240px', overflow: 'hidden', backgroundColor: '#0f2d26' }}>
         <Image
           src="/assets/tirta_asri.jpg"
@@ -118,7 +115,7 @@ export default function Login() {
         </div>
       </div>
 
-      {/* Form Side */}
+      {}
       <div className="auth-form-area">
         <div style={{ width: '100%', maxWidth: '400px' }}>
           <div className="animate-fade-up">

@@ -37,8 +37,7 @@ export async function POST(request) {
 
     const filename = Date.now() + '-' + file.name.replace(/[^a-zA-Z0-9.-]/g, '_')
     const uploadDir = path.join(process.cwd(), 'public', 'uploads')
-    
-    // Pastikan folder uploads ada
+
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true })
     }

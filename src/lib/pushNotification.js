@@ -26,7 +26,7 @@ export async function sendPushToUser(prisma, userId, payload) {
           },
           JSON.stringify(payload)
         ).catch(async (err) => {
-          // Subscription expired/invalid — hapus dari database
+
           if (err.statusCode === 404 || err.statusCode === 410) {
             await prisma.pushSubscription.delete({ where: { id: sub.id } }).catch(() => {})
           }

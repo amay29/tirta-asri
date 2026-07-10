@@ -21,19 +21,16 @@ export default function KasRTPaage() {
         const allPengeluaran = (await expRes.json()).riwayatPengeluaran || []
 
         const lunas = allTagihan.filter(t => t.pembayaran?.status === 'SUCCESS')
-        
-        // Grouping by month-year
+
         const bulanan = {}
         const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"]
-        
-        // Pemasukan
+
         lunas.forEach(t => {
           const key = `${t.bulan} ${t.tahun}`
           if (!bulanan[key]) bulanan[key] = { masuk: 0, keluar: 0, pengeluaranList: [] }
           bulanan[key].masuk += t.jumlah
         })
 
-        // Pengeluaran
         allPengeluaran.forEach(p => {
           const d = new Date(p.createdAt)
           const key = `${monthNames[d.getMonth()]} ${d.getFullYear()}`
@@ -45,7 +42,6 @@ export default function KasRTPaage() {
         const totalMasuk = lunas.reduce((s, t) => s + t.jumlah, 0)
         const totalKeluar = allPengeluaran.reduce((s, p) => s + p.nominal, 0)
 
-        // Sort keys by date descending (rough sort assuming latest years/months are keys)
         const sortedKeys = Object.keys(bulanan).sort((a, b) => {
           const [mA, yA] = a.split(' ')
           const [mB, yB] = b.split(' ')

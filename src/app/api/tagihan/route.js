@@ -32,7 +32,6 @@ export async function POST(request) {
       return NextResponse.json({ pesan: 'Data tidak lengkap' }, { status: 400 })
     }
 
-    // Cek apakah tagihan bulan+tahun sudah ada untuk user ini
     const sudahAda = await prisma.tagihan.findFirst({
       where: {
         userId: parseInt(userId),
@@ -59,7 +58,6 @@ export async function POST(request) {
       },
     })
 
-    // Kirim notifikasi push ke warga bahwa ada tagihan baru
     try {
       const user = await prisma.user.findUnique({ where: { id: parseInt(userId) }, select: { nama: true } })
       const deadlineStr = deadline ? ` (deadline: ${new Date(deadline).toLocaleDateString('id-ID', { day: 'numeric', month: 'long' })})` : ''

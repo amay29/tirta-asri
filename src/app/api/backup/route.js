@@ -12,7 +12,6 @@ export async function GET(request) {
       return NextResponse.json({ pesan: 'Akses ditolak' }, { status: 403 })
     }
 
-    // Ambil semua tabel utama
     const users = await prisma.user.findMany()
     const tagihan = await prisma.tagihan.findMany({
       include: { user: true, pembayaran: true }
@@ -20,7 +19,6 @@ export async function GET(request) {
     const pembayaran = await prisma.pembayaran.findMany()
     const pengeluaran = await prisma.pengeluaran.findMany()
 
-    // Format data untuk Excel
     const dataWarga = users.map(u => ({
       'ID': u.id,
       'Nama': u.nama,
@@ -47,10 +45,8 @@ export async function GET(request) {
       'Nominal (Rp)': p.nominal
     }))
 
-    // Buat Workbook
     const wb = XLSX.utils.book_new()
-    
-    // Tambahkan Sheets
+
     const wsWarga = XLSX.utils.json_to_sheet(dataWarga)
     XLSX.utils.book_append_sheet(wb, wsWarga, "Data Warga")
 
@@ -60,7 +56,6 @@ export async function GET(request) {
     const wsPengeluaran = XLSX.utils.json_to_sheet(dataPengeluaran)
     XLSX.utils.book_append_sheet(wb, wsPengeluaran, "Pengeluaran")
 
-    // Generate buffer
     const buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' })
 
     await logAudit('BACKUP_DATABASE', adminId, 'Melakukan backup database ke format Excel')

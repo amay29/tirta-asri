@@ -38,7 +38,6 @@ export async function POST(request) {
       },
     })
 
-    // Kirim notifikasi push ke semua WARGA
     try {
       await sendPushToRole(prisma, 'WARGA', {
         title: penting ? '📢 Pengumuman Penting!' : '📣 Pengumuman Baru',

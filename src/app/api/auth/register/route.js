@@ -11,7 +11,6 @@ export async function POST(request) {
       return NextResponse.json({ pesan: 'Nama, nomor rumah, dan PIN wajib diisi' }, { status: 400 })
     }
 
-    // Validasi PIN 6 digit
     if (!/^\d{6}$/.test(pin)) {
       return NextResponse.json({ pesan: 'PIN harus terdiri dari 6 angka' }, { status: 400 })
     }

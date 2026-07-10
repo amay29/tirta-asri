@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
-// GET /api/surat/[id] — ambil satu surat dengan data user
 export async function GET(request, { params }) {
   try {
     const { id } = await params

@@ -3,7 +3,6 @@ import bcrypt from 'bcryptjs'
 import { prisma } from '@/lib/prisma'
 import { logAudit } from '@/lib/audit'
 
-// POST /api/auth/reset-pin — Admin reset PIN warga ke default 123456
 export async function POST(request) {
   try {
     const adminId = request.headers.get('x-user-id')

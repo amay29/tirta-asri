@@ -10,7 +10,6 @@ export async function POST(request) {
       return NextResponse.json({ pesan: 'Data tidak lengkap' }, { status: 400 })
     }
 
-    // Upsert — update jika endpoint sudah ada, buat baru jika belum
     await prisma.pushSubscription.upsert({
       where: { endpoint: subscription.endpoint },
       update: {

@@ -5,10 +5,6 @@ import { useRouter } from 'next/navigation'
 
 const SESSION_KEY = 'tirtaAsriUser'
 
-/**
- * Membaca session user dari localStorage/cookie.
- * Bisa dipanggil di mana saja tanpa hook.
- */
 export function getSession() {
   if (typeof window === 'undefined') return null
 
@@ -16,7 +12,7 @@ export function getSession() {
   try {
     raw = localStorage.getItem(SESSION_KEY)
   } catch (err) {
-    // localStorage blocked (private mode, etc)
+
   }
 
   if (!raw) {
@@ -35,17 +31,12 @@ export function getSession() {
   }
 }
 
-/**
- * Auth hook — membaca session sekali saat mount.
- * Tidak menggunakan router sebagai dependency untuk menghindari re-render loop.
- */
 export function useAuth(requiredRole = null) {
   const router = useRouter()
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const redirectedRef = useRef(false)
 
-  // Stabilkan requiredRole agar tidak berubah referensi setiap render
   const rolesRef = useRef(requiredRole)
   rolesRef.current = requiredRole
 
@@ -62,7 +53,7 @@ export function useAuth(requiredRole = null) {
   }, [router])
 
   useEffect(() => {
-    // Hanya jalankan sekali di client saat mount
+
     if (typeof window === 'undefined') return
     if (redirectedRef.current) return
 
@@ -74,7 +65,6 @@ export function useAuth(requiredRole = null) {
       return
     }
 
-    // Cek role
     const required = rolesRef.current
     if (required) {
       const allowedRoles = Array.isArray(required) ? required : [required]

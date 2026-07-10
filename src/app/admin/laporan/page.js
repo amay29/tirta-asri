@@ -49,16 +49,13 @@ export default function LaporanBulanan() {
 
   if (!user || loadingData) return <SkeletonList count={3} />
 
-  // Filter Tagihan
   const dataBulanIni = tagihanList.filter(t => t.bulan === bulanFilter && t.tahun === parseInt(tahunFilter))
-  
-  // Filter Pengeluaran
+
   const pengeluaranBulanIni = pengeluaranList.filter(p => {
     const d = new Date(p.createdAt)
     return BULAN_LIST[d.getMonth()] === bulanFilter && d.getFullYear() === parseInt(tahunFilter)
   })
-  
-  // Kalkulasi
+
   const tagihanLunas = dataBulanIni.filter(t => t.pembayaran?.status === 'SUCCESS')
   const tagihanBelum = dataBulanIni.filter(t => t.pembayaran?.status !== 'SUCCESS')
   
@@ -74,7 +71,6 @@ export default function LaporanBulanan() {
 
     const doc = new jsPDF()
 
-    // Header
     doc.setFontSize(16)
     doc.setFont('helvetica', 'bold')
     doc.text('RUKUN TETANGGA (RT)', 105, 15, { align: 'center' })
@@ -87,7 +83,6 @@ export default function LaporanBulanan() {
     
     let currentY = 40
 
-    // Ringkasan
     doc.setFontSize(12)
     doc.setFont('helvetica', 'bold')
     doc.text('A. Ringkasan', 14, currentY)
@@ -104,7 +99,6 @@ export default function LaporanBulanan() {
     doc.text(`Total Iuran Belum Dibayar: Rp ${totalBelumMasuk.toLocaleString('id-ID')}`, 14, currentY)
     currentY += 12
 
-    // Tabel Iuran
     doc.setFontSize(12)
     doc.setFont('helvetica', 'bold')
     doc.text('B. Rincian Pemasukan Iuran', 14, currentY)
@@ -133,7 +127,6 @@ export default function LaporanBulanan() {
       currentY += 12
     }
 
-    // Tabel Pengeluaran
     doc.setFontSize(12)
     doc.setFont('helvetica', 'bold')
     doc.text('C. Rincian Pengeluaran', 14, currentY)
@@ -162,8 +155,6 @@ export default function LaporanBulanan() {
       currentY += 20
     }
 
-    // TTD
-    // Pastikan TTD tidak terpotong ke halaman berikutnya, jika ya, tambahkan halaman baru
     if (currentY > 260) {
       doc.addPage()
       currentY = 20
