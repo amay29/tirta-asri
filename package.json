@@ -17,11 +17,13 @@
     "jspdf": "^4.2.1",
     "jspdf-autotable": "^5.0.8",
     "next": "16.2.9",
+    "nextjs-toploader": "^3.9.17",
     "pg": "^8.22.0",
     "prisma": "^7.8.0",
     "qrcode.react": "^4.2.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
+    "recharts": "^3.9.2",
     "remixicon": "^4.9.1",
     "web-push": "^3.6.7",
     "xlsx": "^0.18.5"

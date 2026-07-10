@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import EmptyState from '@/components/EmptyState'
 import { SkeletonList } from '@/components/Skeleton'
+import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 
 export default function RiwayatDanaMasuk() {
   const { user } = useAuth(['ADMIN_IURAN', 'ADMIN_RT'])
@@ -41,6 +42,8 @@ export default function RiwayatDanaMasuk() {
   })
   const maxChart = Math.max(...Object.values(bulanGroups), 1)
 
+  const chartData = Object.entries(bulanGroups).map(([name, total]) => ({ name, total }))
+
   return (
     <>
       <div className="animate-fade-up" style={{ marginBottom: '24px' }}>
@@ -55,21 +58,34 @@ export default function RiwayatDanaMasuk() {
         <p className="stat-footnote" style={{ color: '#4a7a68' }}>{tagihanList.length} transaksi lunas</p>
       </div>
 
-      {Object.keys(bulanGroups).length > 0 && (
-        <div className="card animate-fade-up delay-1" style={{ marginBottom: '16px' }}>
-          <p style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text)', margin: '0 0 12px' }}>Pemasukan per Periode</p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {Object.entries(bulanGroups).map(([key, value]) => (
-              <div key={key}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '4px' }}>
-                  <span style={{ color: 'var(--color-text-secondary)' }}>{key}</span>
-                  <span style={{ fontWeight: 600, color: 'var(--color-text)' }}>Rp {value.toLocaleString('id-ID')}</span>
-                </div>
-                <div className="progress-bar">
-                  <div className="progress-bar-fill" style={{ width: `${(value / maxChart) * 100}%` }} />
-                </div>
-              </div>
-            ))}
+      {chartData.length > 0 && (
+        <div className="card animate-fade-up delay-1" style={{ marginBottom: '16px', padding: '20px 16px' }}>
+          <p style={{ fontSize: '14px', fontWeight: 600, color: 'var(--color-text)', margin: '0 0 16px' }}>Pemasukan per Periode</p>
+          <div style={{ height: '200px', width: '100%' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={chartData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#888' }} dy={10} />
+                <Tooltip 
+                  cursor={{ fill: 'rgba(0,0,0,0.04)' }}
+                  content={({ active, payload }) => {
+                    if (active && payload && payload.length) {
+                      return (
+                        <div style={{ background: '#fff', padding: '8px 12px', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', border: '1px solid #eee' }}>
+                          <p style={{ margin: '0 0 4px', fontSize: '12px', color: '#666' }}>{payload[0].payload.name}</p>
+                          <p style={{ margin: 0, fontSize: '14px', fontWeight: 600, color: '#1a6048' }}>Rp {payload[0].value.toLocaleString('id-ID')}</p>
+                        </div>
+                      )
+                    }
+                    return null
+                  }}
+                />
+                <Bar dataKey="total" radius={[4, 4, 4, 4]} barSize={32}>
+                  {chartData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={index === chartData.length - 1 ? '#1a6048' : '#88c9a1'} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         </div>
       )}

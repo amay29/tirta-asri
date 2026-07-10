@@ -2,6 +2,7 @@ import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import 'remixicon/fonts/remixicon.css';
 import Script from 'next/script';
+import NextTopLoader from 'nextjs-toploader';
 
 const fontInter = Inter({
   subsets: ['latin'],
@@ -43,6 +44,7 @@ export default function RootLayout({ children }) {
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
       </head>
       <body>
+        <NextTopLoader color="#c9a84c" height={3} showSpinner={false} />
         {children}
         <Script id="sw-register" strategy="afterInteractive">{`
           if ('serviceWorker' in navigator) {
