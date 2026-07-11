@@ -45,6 +45,13 @@ export function useAuth(requiredRole = null) {
     try { localStorage.removeItem(SESSION_KEY) } catch {}
     document.cookie = `${SESSION_KEY}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`
     
+    if ('caches' in window) {
+      try {
+        const keys = await caches.keys()
+        await Promise.all(keys.map(k => caches.delete(k)))
+      } catch (err) {}
+    }
+
     try {
       await fetch('/api/auth/logout', { method: 'POST' })
     } catch (e) {}
