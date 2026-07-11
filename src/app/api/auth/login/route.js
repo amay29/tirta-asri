@@ -11,7 +11,14 @@ export async function POST(request) {
       return NextResponse.json({ pesan: 'Nomor rumah dan PIN wajib diisi' }, { status: 400 })
     }
 
-    const user = await prisma.user.findFirst({ where: { noRumah } })
+    const user = await prisma.user.findFirst({
+      where: {
+        noRumah: {
+          equals: noRumah,
+          mode: 'insensitive'
+        }
+      }
+    })
 
     if (!user || !(await bcrypt.compare(pin, user.password))) {
       return NextResponse.json({ pesan: 'Nomor rumah atau PIN salah' }, { status: 401 })

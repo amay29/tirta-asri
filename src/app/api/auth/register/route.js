@@ -16,7 +16,12 @@ export async function POST(request) {
     }
 
     const sudahAda = await prisma.user.findFirst({
-      where: { noRumah },
+      where: {
+        noRumah: {
+          equals: noRumah,
+          mode: 'insensitive'
+        }
+      },
     })
 
     if (sudahAda) {
