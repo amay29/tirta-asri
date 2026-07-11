@@ -170,7 +170,6 @@ export default function AdminDashboard() {
 
   return (
     <>
-      {}
       <div className="animate-fade-up" style={{ marginBottom: '24px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
           <p className="label-small" style={{ margin: 0 }}>Tirta Asri Residence</p>
@@ -181,8 +180,6 @@ export default function AdminDashboard() {
           {new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
         </p>
       </div>
-
-      {}
       <div className="animate-fade-up" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
         <PWAInstallButton />
         <NotificationButton />
@@ -192,8 +189,6 @@ export default function AdminDashboard() {
           </a>
         )}
       </div>
-
-      {}
       <div className="animate-fade-up delay-1" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px', marginBottom: '20px' }}>
         <div className="stat-card stat-card-dark">
           <p className="stat-label" style={{ color: '#5a9e8a' }}><i className="ri-wallet-3-line" /> Total Saldo</p>
@@ -211,8 +206,6 @@ export default function AdminDashboard() {
           <p className="stat-footnote">Transfer Manual & QRIS</p>
         </div>
       </div>
-
-      {}
       {isRT && suratPending.length > 0 && (
         <div className="card animate-fade-up delay-2" style={{ marginBottom: '16px', borderLeft: '3px solid var(--color-primary)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
@@ -237,8 +230,6 @@ export default function AdminDashboard() {
           ))}
         </div>
       )}
-
-      {}
       {pendingList.length > 0 && (
         <div className="card animate-fade-up delay-2" style={{ marginBottom: '16px', borderColor: 'var(--color-warning)' }}>
           <p style={{ fontSize: '15px', fontWeight: 600, color: 'var(--color-text)', margin: '0 0 12px' }}>
@@ -280,8 +271,6 @@ export default function AdminDashboard() {
           ))}
         </div>
       )}
-
-      {}
       <div className="card animate-fade-up delay-3" style={{ marginBottom: '16px' }}>
         <p style={{ fontSize: '15px', fontWeight: 600, color: 'var(--color-text)', margin: '0 0 14px' }}>
           <i className="ri-arrow-up-circle-line" style={{ color: 'var(--color-danger)', marginRight: '6px' }} />
@@ -324,8 +313,6 @@ export default function AdminDashboard() {
           </div>
         )}
       </div>
-
-      {}
       <div className="animate-fade-up delay-4">
         <div style={{ marginBottom: '12px' }}>
           <input
@@ -394,8 +381,6 @@ export default function AdminDashboard() {
           </div>
         )}
       </div>
-
-      {}
       <Modal isOpen={!!confirmApprove} onClose={() => setConfirmApprove(null)} title="Konfirmasi Persetujuan" size="sm">
         {confirmApprove && (
           <>
@@ -417,8 +402,6 @@ export default function AdminDashboard() {
           </>
         )}
       </Modal>
-
-      {}
       <Modal isOpen={!!cancelT} onClose={() => { setCancelT(null); setCancelReason('') }} title={cancelT?.pembayaran?.status === 'SUCCESS' ? 'Batalkan Persetujuan' : 'Tolak Pembayaran'} size="sm">
         {cancelT && (
           <form onSubmit={handleBatalPembayaran}>
@@ -450,7 +433,6 @@ export default function AdminDashboard() {
           </form>
         )}
       </Modal>
-      {}
       <Modal isOpen={!!buktiUrl} onClose={() => setBuktiUrl(null)} title="Bukti Transfer" size="md">
         {buktiUrl && (
           <div style={{ textAlign: 'center' }}>

@@ -1,6 +1,5 @@
 import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
-import 'remixicon/fonts/remixicon.css';
 import Script from 'next/script';
 import NextTopLoader from 'nextjs-toploader';
 
@@ -42,6 +41,7 @@ export default function RootLayout({ children }) {
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="mobile-web-app-capable" content="yes" />
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css" />
       </head>
       <body>
         <NextTopLoader color="#c9a84c" height={3} showSpinner={false} />

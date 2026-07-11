@@ -36,9 +36,9 @@ export default function PengumumanAdmin() {
   const [editLampiranPreview, setEditLampiranPreview] = useState('')
   const [editPenting, setEditPenting] = useState(false)
   const [updating, setUpdating] = useState(false)
-
+  
   const [deleteId, setDeleteId] = useState(null)
-
+  
   const [fullscreenFoto, setFullscreenFoto] = useState(null)
 
   const canModify = (p) => {
@@ -242,7 +242,6 @@ export default function PengumumanAdmin() {
         <p className="section-subtitle">Kelola informasi untuk warga</p>
       </div>
 
-      {}
       <form onSubmit={handleBuat} className="card animate-fade-up delay-1" style={{ marginBottom: '16px' }}>
         <p style={{ fontSize: '15px', fontWeight: 600, color: 'var(--color-text)', margin: '0 0 14px' }}>
           <i className="ri-megaphone-line" style={{ marginRight: '6px', color: 'var(--color-accent)' }} />
@@ -257,7 +256,20 @@ export default function PengumumanAdmin() {
           
           <div>
             <label className="form-label" style={{ fontSize: '13px' }}><i className="ri-attachment-line" /> Lampiran Foto / Dokumen (Opsional)</label>
-            <input type="file" accept="image}
+            <input type="file" accept="image/*, .pdf, .csv, .xls, .xlsx" onChange={(e) => handleLampiranChange(e, false)} className="input-field" style={{ padding: '8px' }} />
+            {renderLampiranIndicator(lampiranType, lampiranName, lampiranPreview)}
+          </div>
+
+          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: 'var(--color-text-secondary)', cursor: 'pointer' }}>
+            <input type="checkbox" checked={penting} onChange={(e) => setPenting(e.target.checked)} style={{ width: '18px', height: '18px', accentColor: 'var(--color-accent)' }} />
+            Tandai sebagai penting
+          </label>
+          <button type="submit" disabled={sending} className="btn btn-primary" style={{ justifyContent: 'center' }}>
+            {sending ? <><div className="spinner" /> Mengirim...</> : <><i className="ri-send-plane-line" /> Posting</>}
+          </button>
+        </div>
+      </form>
+
       <div className="animate-fade-up delay-2">
         {pengumumanList.length === 0 ? (
           <div className="card">
@@ -320,11 +332,9 @@ export default function PengumumanAdmin() {
                     </div>
                     {canModify(p) && (
                       <div style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
-                        {}
                         <button onClick={() => handleMulaiEdit(p)} className="btn btn-ghost" style={{ color: 'var(--color-text-muted)', padding: '8px' }}>
                           <i className="ri-edit-line" />
                         </button>
-                        {}
                         <button onClick={() => setDeleteId(p.id)} className="btn btn-ghost" style={{ color: 'var(--color-danger)', padding: '8px' }}>
                           <i className="ri-delete-bin-line" />
                         </button>
@@ -338,7 +348,6 @@ export default function PengumumanAdmin() {
         )}
       </div>
 
-      {}
       <Modal isOpen={!!editId} onClose={() => setEditId(null)} title="Edit Pengumuman" size="sm">
         <form onSubmit={handleUpdate} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <div>
@@ -351,7 +360,22 @@ export default function PengumumanAdmin() {
           </div>
           <div>
             <label className="form-label" style={{ fontSize: '13px' }}><i className="ri-attachment-line" /> Lampiran Foto / Dokumen</label>
-            <input type="file" accept="image}
+            <input type="file" accept="image/*, .pdf, .csv, .xls, .xlsx" onChange={(e) => handleLampiranChange(e, true)} className="input-field" style={{ padding: '8px' }} />
+            {renderLampiranIndicator(editLampiranType, editLampiranName, editLampiranPreview)}
+          </div>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: 'var(--color-text-secondary)', cursor: 'pointer', margin: '4px 0' }}>
+            <input type="checkbox" checked={editPenting} onChange={(e) => setEditPenting(e.target.checked)} style={{ width: '18px', height: '18px', accentColor: 'var(--color-accent)' }} />
+            Tandai sebagai penting
+          </label>
+          <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+            <button type="button" onClick={() => setEditId(null)} className="btn btn-secondary btn-sm" style={{ flex: 1 }}>Batal</button>
+            <button type="submit" disabled={updating} className="btn btn-primary btn-sm" style={{ flex: 1, justifyContent: 'center' }}>
+              {updating ? 'Menyimpan...' : 'Simpan Perubahan'}
+            </button>
+          </div>
+        </form>
+      </Modal>
+
       <Modal isOpen={!!deleteId} onClose={() => setDeleteId(null)} title="Hapus Pengumuman?" size="sm">
         <p style={{ fontSize: '14px', color: 'var(--color-text-secondary)', margin: '0 0 16px', lineHeight: 1.5 }}>
           Pengumuman yang dihapus tidak bisa dikembalikan.
@@ -364,7 +388,6 @@ export default function PengumumanAdmin() {
         </div>
       </Modal>
 
-      {}
       <Modal isOpen={!!fullscreenFoto} onClose={() => setFullscreenFoto(null)} title="Foto Pengumuman" size="lg">
         {fullscreenFoto && (
           <img src={fullscreenFoto} alt="Fullscreen" style={{ width: '100%', height: 'auto', borderRadius: '8px' }} />

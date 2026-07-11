@@ -4,7 +4,6 @@ import Link from 'next/link'
 export default function Home() {
   return (
     <div className="auth-page" style={{ backgroundColor: '#0f2d26' }}>
-      {}
       <div style={{ position: 'relative', minHeight: '55dvh', overflow: 'hidden' }}
         className="auth-hero"
       >
@@ -39,8 +38,6 @@ export default function Home() {
           </h1>
         </div>
       </div>
-
-      {}
       <div className="auth-form-area" style={{
         flex: 1, padding: '32px 24px 48px',
         display: 'flex', flexDirection: 'column', justifyContent: 'center',

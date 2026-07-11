@@ -154,8 +154,6 @@ export default function SuratAdmin() {
                     <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', margin: 0, lineHeight: 1.5, whiteSpace: 'pre-line' }}>{s.keterangan}</p>
                   </div>
                 )}
-
-                {}
                 {editingId === s.id ? (
                   <div style={{ marginTop: '10px', marginBottom: '14px' }}>
                     <label className="form-label" style={{ fontSize: '12px', marginBottom: '6px' }}>Edit Isi Dokumen Sebelum Dicetak:</label>
@@ -198,7 +196,6 @@ export default function SuratAdmin() {
                   </p>
 
                   <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                    {}
                     {editingId !== s.id && (
                       <button
                         onClick={() => mulaiEdit(s)}
@@ -208,8 +205,6 @@ export default function SuratAdmin() {
                         <i className="ri-edit-line" /> {s.isiSurat ? 'Edit Draf' : 'Tulis/Edit'}
                       </button>
                     )}
-
-                    {}
                     {(s.status === 'SELESAI' || s.status === 'DIPROSES') && (
                       <Link
                         href={`/cetak/surat/${s.id}`}

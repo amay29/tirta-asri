@@ -77,7 +77,6 @@ export default function Register() {
 
   return (
     <div className="auth-page">
-      {}
       <div className="auth-hero" style={{ position: 'relative', minHeight: '200px', overflow: 'hidden', backgroundColor: '#0f2d26' }}>
         <Image
           src="/assets/tirta_asri.jpg"
@@ -101,8 +100,6 @@ export default function Register() {
           </h1>
         </div>
       </div>
-
-      {}
       <div className="auth-form-area">
         <div style={{ width: '100%', maxWidth: '400px' }}>
 

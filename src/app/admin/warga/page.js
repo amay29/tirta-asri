@@ -275,8 +275,6 @@ export default function KelolaWarga() {
           </div>
         )}
       </div>
-
-      {}
       <Modal isOpen={showWargaModal} onClose={() => setShowWargaModal(false)} title={editMode ? 'Edit Data Warga' : 'Tambah Warga Baru'} size="sm">
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <div>
@@ -298,8 +296,6 @@ export default function KelolaWarga() {
           </button>
         </div>
       </Modal>
-
-      {}
       <Modal isOpen={showTagihanModal} onClose={() => setShowTagihanModal(false)} title={`Buat Tagihan — ${selectedWarga?.nama}`} size="sm">
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <div>
@@ -325,8 +321,6 @@ export default function KelolaWarga() {
           </button>
         </div>
       </Modal>
-
-      {}
       <Modal isOpen={showBulkModal} onClose={() => setShowBulkModal(false)} title="Tagihan Massal" size="sm">
         <p style={{ fontSize: '14px', color: 'var(--color-text-secondary)', margin: '0 0 16px', lineHeight: 1.5 }}>
           Buat tagihan untuk <strong>semua {wargaList.length} warga</strong> sekaligus.

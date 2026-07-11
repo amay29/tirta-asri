@@ -28,7 +28,6 @@ export default function AdminLayout({ children }) {
           role={user.role}
         />
         <main className="admin-main" style={{ backgroundColor: 'var(--color-bg)' }}>
-          {}
           <div className="mobile-header">
             <button className="hamburger-btn" onClick={() => setSidebarOpen(true)} aria-label="Buka menu">
               <i className="ri-menu-line" />
