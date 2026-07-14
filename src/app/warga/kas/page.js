@@ -5,6 +5,7 @@ import { useAuth } from '@/hooks/useAuth'
 import Link from 'next/link'
 import EmptyState from '@/components/EmptyState'
 import { SkeletonList } from '@/components/Skeleton'
+import TopNav from '@/components/TopNav'
 
 export default function KasRTPaage() {
   const { user } = useAuth(['WARGA', 'ADMIN_RT', 'ADMIN_IURAN'])
@@ -73,10 +74,8 @@ export default function KasRTPaage() {
 
   return (
     <>
+      <TopNav title="Kas RT" />
       <div className="animate-fade-up" style={{ marginBottom: '24px' }}>
-        <Link href="/warga" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '14px', color: 'var(--color-primary)', textDecoration: 'none', marginBottom: '12px', fontWeight: 600 }}>
-          <i className="ri-arrow-left-s-line" /> Kembali
-        </Link>
         <p className="label-small" style={{ marginBottom: '4px' }}>Tirta Asri Residence</p>
         <h1 className="section-title">Transparansi Kas RT</h1>
         <p className="section-subtitle">Rincian pemasukan dan pengeluaran</p>

@@ -6,6 +6,7 @@ import { useToast } from '@/components/Toast'
 import Modal from '@/components/Modal'
 import EmptyState from '@/components/EmptyState'
 import { SkeletonList } from '@/components/Skeleton'
+import TopNav from '@/components/TopNav'
 
 const ROLE_LABELS = {
   ADMIN_IURAN: 'Admin Iuran',
@@ -236,6 +237,7 @@ export default function PengumumanAdmin() {
 
   return (
     <>
+      <TopNav title="Pengumuman" />
       <div className="animate-fade-up" style={{ marginBottom: '24px' }}>
         <p className="label-small" style={{ marginBottom: '4px' }}>Tirta Asri Residence</p>
         <h1 className="section-title">Pengumuman</h1>

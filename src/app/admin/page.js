@@ -198,7 +198,7 @@ export default function AdminDashboard() {
         <div className="stat-card stat-card-light">
           <p className="stat-label"><i className="ri-money-dollar-circle-line" /> Kas Tunai</p>
           <p className="stat-value">Rp {kasUangTunai.toLocaleString('id-ID')}</p>
-          <p className="stat-footnote">Uang fisik / Titip Pengurus</p>
+          <p className="stat-footnote">Uang Tunai</p>
         </div>
         <div className="stat-card stat-card-light">
           <p className="stat-label"><i className="ri-bank-card-line" /> Saldo Bank</p>

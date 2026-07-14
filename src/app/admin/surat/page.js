@@ -7,6 +7,7 @@ import StatusBadge from '@/components/StatusBadge'
 import EmptyState from '@/components/EmptyState'
 import { SkeletonList } from '@/components/Skeleton'
 import Link from 'next/link'
+import TopNav from '@/components/TopNav'
 
 const STATUS_OPSI = ['PENDING', 'DIPROSES', 'SELESAI', 'DITOLAK']
 
@@ -108,6 +109,7 @@ export default function SuratAdmin() {
 
   return (
     <>
+      <TopNav title="Surat Masuk" />
       <div className="animate-fade-up" style={{ marginBottom: '24px' }}>
         <p className="label-small" style={{ marginBottom: '4px' }}>Tirta Asri Residence</p>
         <h1 className="section-title">Surat Masuk</h1>

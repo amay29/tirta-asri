@@ -12,6 +12,10 @@ export async function POST(request) {
       return NextResponse.json({ pesan: 'Semua field wajib diisi' }, { status: 400 })
     }
 
+    if (process.env.NEXT_PUBLIC_IS_DEMO === 'true') {
+      return NextResponse.json({ pesan: 'Fitur ubah PIN dinonaktifkan pada versi Demo (Portfolio).' }, { status: 403 })
+    }
+
     if (requesterId !== userId?.toString()) {
       return NextResponse.json({ pesan: 'Tidak berhak mengubah PIN orang lain' }, { status: 403 })
     }

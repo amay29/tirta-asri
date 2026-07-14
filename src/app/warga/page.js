@@ -208,7 +208,7 @@ export default function WargaDashboard() {
       <div className="animate-fade-up" style={{ marginBottom: '24px' }}>
         <p className="label-small" style={{ marginBottom: '4px' }}>Tirta Asri Residence</p>
         <h1 className="section-title" style={{ fontSize: '24px' }}>
-          {getGreeting()}, {user.nama.split(' ')[0]}
+          {getGreeting()}, {user.nama.replace(/^(Bapak|Ibu|Bp\.|Sdr\.|Sdri\.)\s+/i, '').split(' ')[0]}
         </h1>
         <p className="section-subtitle">Blok {user.noRumah}</p>
       </div>
@@ -424,7 +424,7 @@ export default function WargaDashboard() {
               style={{ marginBottom: '16px' }}
             >
               <option value="QRIS Gateway">QRIS Gateway (Scan QR)</option>
-              <option value="Tunai">Tunai / Cash (Titip Pengurus)</option>
+              <option value="Tunai">Uang Tunai</option>
               <option value="Transfer Manual">Transfer Manual (Bukti Transfer)</option>
             </select>
             

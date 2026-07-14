@@ -71,7 +71,22 @@ export default function NotificationButton() {
 
   if (typeof window !== 'undefined' && !('Notification' in window)) return null
   if (permission === 'granted') return null
-  if (permission === 'denied') return null
+  if (permission === 'denied') {
+    return (
+      <div style={{
+        padding: '12px', background: '#ffebee', borderRadius: '12px',
+        marginBottom: '16px', display: 'flex', alignItems: 'flex-start', gap: '8px'
+      }}>
+        <i className="ri-error-warning-fill" style={{ color: '#d32f2f', fontSize: '18px', marginTop: '2px', flexShrink: 0 }} />
+        <div>
+          <p style={{ fontSize: '13px', fontWeight: 600, color: '#d32f2f', margin: '0 0 4px' }}>Notifikasi Diblokir</p>
+          <p style={{ fontSize: '12px', color: '#b71c1c', margin: 0, lineHeight: 1.4 }}>
+            Buka pengaturan situs (Site Settings) pada browser Anda, lalu izinkan Notifikasi untuk menerima pemberitahuan RT.
+          </p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <button

@@ -5,6 +5,7 @@ import { useAuth } from '@/hooks/useAuth'
 import EmptyState from '@/components/EmptyState'
 import { SkeletonList } from '@/components/Skeleton'
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
+import TopNav from '@/components/TopNav'
 
 export default function RiwayatDanaMasuk() {
   const { user } = useAuth(['ADMIN_IURAN', 'ADMIN_RT'])
@@ -46,6 +47,7 @@ export default function RiwayatDanaMasuk() {
 
   return (
     <>
+      <TopNav title="Riwayat Dana Masuk" />
       <div className="animate-fade-up" style={{ marginBottom: '24px' }}>
         <p className="label-small" style={{ marginBottom: '4px' }}>Tirta Asri Residence</p>
         <h1 className="section-title" style={{ fontSize: '24px' }}>Riwayat Dana Masuk</h1>

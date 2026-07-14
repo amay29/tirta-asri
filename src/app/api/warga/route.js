@@ -84,6 +84,10 @@ export async function DELETE(request) {
     const { id } = await request.json()
     if (!id) return NextResponse.json({ pesan: 'ID wajib diisi' }, { status: 400 })
 
+    if (process.env.NEXT_PUBLIC_IS_DEMO === 'true') {
+      return NextResponse.json({ pesan: 'Fitur hapus warga dinonaktifkan pada versi Demo (Portfolio).' }, { status: 403 })
+    }
+
     await prisma.user.delete({ where: { id: parseInt(id) } })
     
     await logAudit('DELETE_WARGA', adminId, `Menghapus warga ID ${id}`)

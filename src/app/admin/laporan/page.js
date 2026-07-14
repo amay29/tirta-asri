@@ -7,6 +7,7 @@ import { SkeletonList } from '@/components/Skeleton'
 import EmptyState from '@/components/EmptyState'
 import Link from 'next/link'
 import jsPDF from 'jspdf'
+import TopNav from '@/components/TopNav'
 import autoTable from 'jspdf-autotable'
 
 const BULAN_LIST = [
@@ -218,10 +219,8 @@ export default function LaporanBulanan() {
 
   return (
     <>
+      <TopNav title="Laporan Bulanan" />
       <div className="animate-fade-up" style={{ marginBottom: '24px' }}>
-        <Link href="/admin" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '14px', color: 'var(--color-text-muted)', textDecoration: 'none', marginBottom: '12px' }}>
-          <i className="ri-arrow-left-line" /> Kembali ke Dashboard
-        </Link>
         <p className="label-small" style={{ marginBottom: '4px' }}>Tirta Asri Residence</p>
         <h1 className="section-title">Laporan Bulanan</h1>
         <p className="section-subtitle">Rekapitulasi keuangan kas warga (Pemasukan & Pengeluaran)</p>

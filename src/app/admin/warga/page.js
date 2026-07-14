@@ -6,6 +6,7 @@ import { useToast } from '@/components/Toast'
 import Modal from '@/components/Modal'
 import EmptyState from '@/components/EmptyState'
 import { SkeletonList } from '@/components/Skeleton'
+import TopNav from '@/components/TopNav'
 
 function statusTampilan(t) {
   if (!t.pembayaran) return 'Belum Bayar'
@@ -156,6 +157,7 @@ export default function KelolaWarga() {
 
   return (
     <>
+      <TopNav title="Kelola Warga" />
       <div className="animate-fade-up" style={{ marginBottom: '24px' }}>
         <p className="label-small" style={{ marginBottom: '4px' }}>Tirta Asri Residence</p>
         <h1 className="section-title">Kelola Warga</h1>

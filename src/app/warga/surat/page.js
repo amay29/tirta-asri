@@ -8,6 +8,7 @@ import Modal from '@/components/Modal'
 import EmptyState from '@/components/EmptyState'
 import { SkeletonList } from '@/components/Skeleton'
 import Link from 'next/link'
+import TopNav from '@/components/TopNav'
 
 const JENIS_SURAT = [
   'Surat Keterangan Domisili',
@@ -132,14 +133,12 @@ export default function SuratWarga() {
 
   return (
     <>
+      <TopNav title="Pengajuan Surat" />
       <div className="animate-fade-up" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
         <div>
           <p className="label-small" style={{ marginBottom: '4px' }}>Tirta Asri Residence</p>
           <h1 className="section-title">Pengajuan Surat</h1>
         </div>
-        <Link href="/warga" className="btn btn-ghost" style={{ flexShrink: 0 }}>
-          <i className="ri-arrow-left-line" /> Kembali
-        </Link>
       </div>
       <div className="card animate-fade-up delay-1" style={{ marginBottom: '16px' }}>
         <p style={{ fontSize: '15px', fontWeight: 600, color: 'var(--color-text)', margin: '0 0 16px' }}>
