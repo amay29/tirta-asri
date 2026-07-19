@@ -4,10 +4,7 @@ import { verifyJwt } from '@/lib/jwt'
 export async function middleware(request) {
   const { pathname } = request.nextUrl
 
-  if (
-    pathname.startsWith('/api/auth/login') ||
-    pathname.startsWith('/api/auth/register')
-  ) {
+  if (pathname.startsWith('/api/auth/login')) {
     return NextResponse.next()
   }
 

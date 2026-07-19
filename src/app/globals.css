@@ -929,3 +929,82 @@ input[type="number"] {
     padding-bottom: calc(80px + env(safe-area-inset-bottom));
   }
 }
+
+/* === ADMIN PAGE UTILITIES === */
+.admin-header-section { margin-bottom: 24px; }
+.admin-header-label { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+.mb-0 { margin: 0; }
+.admin-badge { font-size: 10px; }
+.admin-title { font-size: 26px; }
+.admin-action-bar { display: flex; gap: 8px; flex-wrap: wrap; }
+.no-underline { text-decoration: none; }
+.success-icon { color: var(--color-success); }
+
+.admin-stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 20px; }
+.stat-label-primary { color: #5a9e8a; }
+.stat-footnote-primary { color: #4a7a68; }
+
+.admin-surat-card { margin-bottom: 16px; border-left: 3px solid var(--color-primary); }
+.admin-surat-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.admin-surat-title { font-size: 15px; font-weight: 600; color: var(--color-text); margin: 0; }
+.admin-surat-icon { color: var(--color-primary); margin-right: 6px; }
+.admin-surat-link { font-size: 13px; color: var(--color-primary); text-decoration: none; font-weight: 600; }
+.admin-surat-item { margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
+.admin-surat-name { font-size: 14px; font-weight: 600; color: var(--color-text); margin: 0; }
+.admin-surat-details { font-size: 12px; color: var(--color-text-muted); margin: 2px 0 0; }
+
+.admin-pending-card { margin-bottom: 16px; border-color: var(--color-warning); }
+.admin-pending-title { font-size: 15px; font-weight: 600; color: var(--color-text); margin: 0 0 12px; }
+.admin-pending-icon { color: var(--color-warning); margin-right: 6px; }
+.admin-pending-item { margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+.admin-item-name { font-size: 14px; font-weight: 600; color: var(--color-text); margin: 0; }
+.admin-item-details { font-size: 12px; color: var(--color-text-muted); margin: 2px 0 0; }
+.admin-action-group { display: flex; gap: 8px; }
+.admin-btn-reject { color: var(--color-danger); }
+
+.admin-expense-card { margin-bottom: 16px; }
+.admin-expense-title { font-size: 15px; font-weight: 600; color: var(--color-text); margin: 0 0 14px; }
+.admin-expense-icon { color: var(--color-danger); margin-right: 6px; }
+.admin-expense-form { display: flex; flex-direction: column; gap: 10px; }
+.admin-btn-center { justify-content: center; }
+.admin-expense-list-container { margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--color-border-light); }
+.admin-expense-item { margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
+.admin-expense-item-title { font-size: 13px; font-weight: 500; color: var(--color-text); margin: 0; }
+.admin-expense-item-amount { font-size: 13px; font-weight: 600; color: var(--color-danger); margin: 2px 0 0; }
+.admin-badge-sm { font-size: 10px; }
+.admin-badge-margin { margin-left: 6px; }
+.admin-expense-item-date { font-size: 10px; color: var(--color-text-muted); margin: 2px 0 0; }
+.admin-btn-cancel { font-size: 12px; color: var(--color-text-muted); }
+
+.admin-search-container { margin-bottom: 12px; }
+.admin-search-input { background: var(--color-card); }
+.admin-invoices-title { font-size: 15px; font-weight: 600; color: var(--color-text); margin: 0 0 12px; }
+.admin-invoices-list { display: flex; flex-direction: column; gap: 8px; }
+.admin-invoice-card { padding: 16px; }
+.admin-invoice-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+.admin-invoice-name { font-size: 15px; font-weight: 600; color: var(--color-text); margin: 0; }
+.admin-invoice-badges { display: flex; gap: 4px; margin-top: 4px; flex-wrap: wrap; }
+.admin-invoice-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 6px; }
+.admin-invoice-period { font-size: 11px; color: var(--color-text-muted); margin: 0; }
+.admin-invoice-amount { font-size: 15px; font-weight: 600; color: var(--color-text); margin: 2px 0 0; }
+.admin-invoice-success { display: flex; align-items: center; gap: 8px; }
+.admin-invoice-valid { font-size: 12px; color: var(--color-text-muted); font-style: italic; }
+.admin-btn-cancel-small { color: var(--color-danger); padding: 4px 8px; }
+.admin-invoice-waiting { font-size: 12px; color: var(--color-text-muted); font-style: italic; }
+
+.admin-modal-content { margin-bottom: 16px; text-align: center; }
+.admin-modal-text { font-size: 14px; color: var(--color-text-secondary); margin: 0 0 8px; }
+.admin-modal-period { margin: 0; font-size: 14px; }
+.admin-modal-amount { font-size: 18px; font-weight: 600; color: var(--color-text); margin: 4px 0 0; }
+.admin-modal-actions { display: flex; gap: 8px; }
+.admin-modal-btn { flex: 1; }
+
+.admin-cancel-card { margin-bottom: 16px; }
+.admin-cancel-text { font-size: 14px; color: var(--color-text-secondary); margin: 0 0 8px; line-height: 1.5; }
+.admin-cancel-input-group { margin-bottom: 16px; }
+.admin-req-asterisk { color: var(--color-danger); }
+.admin-cancel-hint { font-size: 11px; color: var(--color-text-muted); margin: 4px 0 0; }
+
+.admin-bukti-container { text-align: center; }
+.admin-bukti-img { max-width: 100%; max-height: 70vh; object-fit: contain; border-radius: 8px; }
+.admin-bukti-close { margin-top: 16px; width: 100%; justify-content: center; }

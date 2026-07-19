@@ -26,7 +26,12 @@ export async function POST(request) {
 
     const { password, ...userAman } = user
 
-    const token = await signJwt({ id: user.id, role: user.role })
+    const token = await signJwt({ 
+      id: user.id, 
+      role: user.role,
+      nama: user.nama,
+      noRumah: user.noRumah
+    })
 
     const response = NextResponse.json({ pesan: 'Login berhasil', user: userAman })
 

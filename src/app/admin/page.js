@@ -3,27 +3,21 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/components/Toast'
-import StatusBadge from '@/components/StatusBadge'
 import Modal from '@/components/Modal'
-import EmptyState from '@/components/EmptyState'
 import { SkeletonDashboard } from '@/components/Skeleton'
-import PWAInstallButton from '@/components/PWAInstallButton'
-import NotificationButton from '@/components/NotificationButton'
-import Link from 'next/link'
+
+import DashboardHeader from '@/components/admin/DashboardHeader'
+import KasStats from '@/components/admin/KasStats'
+import PendingSurat from '@/components/admin/PendingSurat'
+import PendingPayments from '@/components/admin/PendingPayments'
+import ExpenseManager from '@/components/admin/ExpenseManager'
+import AllInvoices from '@/components/admin/AllInvoices'
 
 function statusTampilan(t) {
   if (!t.pembayaran) return 'Belum Bayar'
   if (t.pembayaran.status === 'PENDING') return 'Pending'
   if (t.pembayaran.status === 'SUCCESS') return 'Lunas'
   return 'Belum Bayar'
-}
-
-function statusSuratLabel(s) {
-  if (s === 'PENDING') return 'Menunggu'
-  if (s === 'DIPROSES') return 'Diproses'
-  if (s === 'SELESAI') return 'Selesai'
-  if (s === 'DITOLAK') return 'Ditolak'
-  return s
 }
 
 export default function AdminDashboard() {
@@ -33,15 +27,11 @@ export default function AdminDashboard() {
   const [pengeluaran, setPengeluaran] = useState([])
   const [suratList, setSuratList] = useState([])
   const [loadingData, setLoadingData] = useState(true)
-  const [inputKeperluan, setInputKeperluan] = useState('')
-  const [inputNominal, setInputNominal] = useState('')
-  const [sumberDana, setSumberDana] = useState('Cash')
-  const [showFormTagihan, setShowFormTagihan] = useState(false)
+
   const [confirmApprove, setConfirmApprove] = useState(null)
   const [cancelT, setCancelT] = useState(null)
   const [cancelReason, setCancelReason] = useState('')
   const [cancelLoading, setCancelLoading] = useState(false)
-  const [searchQuery, setSearchQuery] = useState('')
   const [buktiUrl, setBuktiUrl] = useState(null)
 
   const isRT = user?.role === 'ADMIN_RT'
@@ -116,36 +106,6 @@ export default function AdminDashboard() {
     }
   }
 
-  const handleTambahPengeluaran = async (e) => {
-    e.preventDefault()
-    if (!inputKeperluan || !inputNominal) return
-    try {
-      const res = await fetch('/api/pengeluaran', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ keperluan: inputKeperluan, nominal: parseInt(inputNominal), sumber: sumberDana }),
-      })
-      if (res.ok) {
-        setInputKeperluan('')
-        setInputNominal('')
-        toast.success('Pengeluaran tercatat!')
-        ambilData()
-      }
-    } catch { toast.error('Gagal mencatat pengeluaran') }
-  }
-
-  const handleHapusPengeluaran = async (id) => {
-    if (!confirm('Yakin ingin membatalkan pengeluaran ini? Data yang sudah dihapus tidak bisa dikembalikan.')) return
-    try {
-      const res = await fetch('/api/pengeluaran', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id }),
-      })
-      if (res.ok) { toast.info('Pengeluaran dibatalkan'); ambilData() }
-    } catch { toast.error('Gagal membatalkan') }
-  }
-
   if (!user || loadingData) return <SkeletonDashboard />
 
   const tagihanLunas = tagihanList.filter(t => statusTampilan(t) === 'Lunas')
@@ -160,259 +120,69 @@ export default function AdminDashboard() {
   const pendingList = tagihanList.filter(t => statusTampilan(t) === 'Pending')
   const suratPending = suratList.filter(s => s.status === 'PENDING')
 
-  const tagihanTersaring = tagihanList.filter(t =>
-    t.user.nama.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    t.user.noRumah.toLowerCase().includes(searchQuery.toLowerCase())
-  )
-
   const dashboardTitle = isRT ? 'Dashboard Ketua RT' : 'Dashboard Admin Iuran'
   const roleBadge = isRT ? 'Ketua RT' : 'Admin Iuran'
 
   return (
     <>
-      <div className="animate-fade-up" style={{ marginBottom: '24px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
-          <p className="label-small" style={{ margin: 0 }}>Tirta Asri Residence</p>
-          <span className="badge badge-accent" style={{ fontSize: '10px' }}>{roleBadge}</span>
-        </div>
-        <h1 className="section-title" style={{ fontSize: '26px' }}>{dashboardTitle}</h1>
-        <p className="section-subtitle">
-          {new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
-        </p>
-      </div>
-      <div className="animate-fade-up" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-        <PWAInstallButton />
-        <NotificationButton />
-        {isRT && (
-          <a href="/api/backup" target="_blank" className="btn btn-secondary btn-sm" style={{ textDecoration: 'none' }}>
-            <i className="ri-file-excel-2-line" style={{ color: 'var(--color-success)' }} /> Download Rekap Excel
-          </a>
-        )}
-      </div>
-      <div className="animate-fade-up delay-1" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px', marginBottom: '20px' }}>
-        <div className="stat-card stat-card-dark">
-          <p className="stat-label" style={{ color: '#5a9e8a' }}><i className="ri-wallet-3-line" /> Total Saldo</p>
-          <p className="stat-value">Rp {totalSaldo.toLocaleString('id-ID')}</p>
-          <p className="stat-footnote" style={{ color: '#4a7a68' }}>Cash + Bank</p>
-        </div>
-        <div className="stat-card stat-card-light">
-          <p className="stat-label"><i className="ri-money-dollar-circle-line" /> Kas Tunai</p>
-          <p className="stat-value">Rp {kasUangTunai.toLocaleString('id-ID')}</p>
-          <p className="stat-footnote">Uang Tunai</p>
-        </div>
-        <div className="stat-card stat-card-light">
-          <p className="stat-label"><i className="ri-bank-card-line" /> Saldo Bank</p>
-          <p className="stat-value">Rp {kasSaldoBank.toLocaleString('id-ID')}</p>
-          <p className="stat-footnote">Transfer Manual & QRIS</p>
-        </div>
-      </div>
-      {isRT && suratPending.length > 0 && (
-        <div className="card animate-fade-up delay-2" style={{ marginBottom: '16px', borderLeft: '3px solid var(--color-primary)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-            <p style={{ fontSize: '15px', fontWeight: 600, color: 'var(--color-text)', margin: 0 }}>
-              <i className="ri-file-text-line" style={{ color: 'var(--color-primary)', marginRight: '6px' }} />
-              Surat Menunggu ({suratPending.length})
-            </p>
-            <Link href="/admin/surat" style={{ fontSize: '13px', color: 'var(--color-primary)', textDecoration: 'none', fontWeight: 600 }}>
-              Lihat Semua →
-            </Link>
-          </div>
-          {suratPending.slice(0, 3).map(s => (
-            <div key={s.id} className="card-flat" style={{ marginBottom: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <p style={{ fontSize: '14px', fontWeight: 600, color: 'var(--color-text)', margin: 0 }}>{s.user.nama}</p>
-                <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', margin: '2px 0 0' }}>
-                  {s.jenisSurat} · Blok {s.user.noRumah}
-                </p>
-              </div>
-              <span className="badge badge-warning" style={{ fontSize: '10px' }}>{statusSuratLabel(s.status)}</span>
-            </div>
-          ))}
-        </div>
-      )}
-      {pendingList.length > 0 && (
-        <div className="card animate-fade-up delay-2" style={{ marginBottom: '16px', borderColor: 'var(--color-warning)' }}>
-          <p style={{ fontSize: '15px', fontWeight: 600, color: 'var(--color-text)', margin: '0 0 12px' }}>
-            <i className="ri-time-line" style={{ color: 'var(--color-warning)', marginRight: '6px' }} />
-            Menunggu Persetujuan ({pendingList.length})
-          </p>
-          {pendingList.map(t => (
-            <div key={t.id} className="card-flat" style={{ marginBottom: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
-              <div>
-                <p style={{ fontSize: '14px', fontWeight: 600, color: 'var(--color-text)', margin: 0 }}>{t.user.nama}</p>
-                <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', margin: '2px 0 0' }}>
-                  Blok {t.user.noRumah} · {t.bulan} {t.tahun} · {t.pembayaran?.metodeBayar} · Rp {t.jumlah.toLocaleString('id-ID')}
-                </p>
-              </div>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                {t.pembayaran?.buktiTransfer && (
-                  <button
-                    onClick={() => setBuktiUrl(t.pembayaran.buktiTransfer)}
-                    className="btn btn-outline btn-sm"
-                  >
-                    <i className="ri-image-line" /> Lihat Bukti
-                  </button>
-                )}
-                <button
-                  onClick={() => setCancelT(t)}
-                  className="btn btn-secondary btn-sm"
-                  style={{ color: 'var(--color-danger)' }}
-                >
-                  <i className="ri-close-line" /> Tolak
-                </button>
-                <button
-                  onClick={() => setConfirmApprove(t)}
-                  className="btn btn-primary btn-sm"
-                >
-                  <i className="ri-check-line" /> Setujui
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-      <div className="card animate-fade-up delay-3" style={{ marginBottom: '16px' }}>
-        <p style={{ fontSize: '15px', fontWeight: 600, color: 'var(--color-text)', margin: '0 0 14px' }}>
-          <i className="ri-arrow-up-circle-line" style={{ color: 'var(--color-danger)', marginRight: '6px' }} />
-          Input Pengeluaran
-        </p>
-        <form onSubmit={handleTambahPengeluaran} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          <input type="text" placeholder="Keperluan pengeluaran" value={inputKeperluan} onChange={(e) => setInputKeperluan(e.target.value)} className="input-field" required />
-          <input type="text" inputMode="numeric" placeholder="Nominal (Rp)" value={inputNominal} onChange={(e) => setInputNominal(e.target.value.replace(/\D/g, ''))} className="input-field" required />
-          <div>
-            <label className="form-label">Sumber Dana</label>
-            <select value={sumberDana} onChange={(e) => setSumberDana(e.target.value)} className="select-field">
-              <option value="Cash">Uang Tunai / Cash</option>
-              <option value="Transfer">Rekening / Hasil QRIS</option>
-            </select>
-          </div>
-          <button type="submit" className="btn btn-danger" style={{ justifyContent: 'center' }}>
-            <i className="ri-subtract-line" /> Catat Pengeluaran
-          </button>
-        </form>
+      <DashboardHeader isRT={isRT} dashboardTitle={dashboardTitle} roleBadge={roleBadge} />
+      
+      <KasStats 
+        totalSaldo={totalSaldo} 
+        kasUangTunai={kasUangTunai} 
+        kasSaldoBank={kasSaldoBank} 
+      />
+      
+      <PendingSurat suratPending={suratPending} isRT={isRT} />
+      
+      <PendingPayments 
+        pendingList={pendingList} 
+        setBuktiUrl={setBuktiUrl} 
+        setCancelT={setCancelT} 
+        setConfirmApprove={setConfirmApprove} 
+      />
+      
+      <ExpenseManager pengeluaran={pengeluaran} onRefresh={ambilData} />
+      
+      <AllInvoices 
+        tagihanList={tagihanList} 
+        setCancelT={setCancelT} 
+        setConfirmApprove={setConfirmApprove} 
+      />
 
-        {pengeluaran.length > 0 && (
-          <div style={{ marginTop: '14px', paddingTop: '14px', borderTop: '1px dashed var(--color-border-light)' }}>
-            {pengeluaran.slice(0, 5).map(exp => (
-              <div key={exp.id} className="card-flat" style={{ marginBottom: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <p style={{ fontSize: '13px', fontWeight: 500, color: 'var(--color-text)', margin: 0 }}>{exp.keperluan}</p>
-                  <p style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-danger)', margin: '2px 0 0' }}>
-                    - Rp {exp.nominal.toLocaleString('id-ID')}
-                    <span className="badge badge-neutral" style={{ marginLeft: '6px', fontSize: '10px' }}>{exp.sumber}</span>
-                  </p>
-                  <p style={{ fontSize: '10px', color: 'var(--color-text-muted)', margin: '2px 0 0' }}>
-                    {new Date(exp.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
-                  </p>
-                </div>
-                <button onClick={() => handleHapusPengeluaran(exp.id)} className="btn btn-ghost" style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
-                  Batalkan
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-      <div className="animate-fade-up delay-4">
-        <div style={{ marginBottom: '12px' }}>
-          <input
-            type="text"
-            placeholder="Cari nama atau nomor rumah warga..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="input-field"
-            style={{ background: 'var(--color-card)' }}
-          />
-        </div>
-
-        <p style={{ fontSize: '15px', fontWeight: 600, color: 'var(--color-text)', margin: '0 0 12px' }}>
-          Semua Tagihan Warga
-        </p>
-
-        {tagihanTersaring.length === 0 ? (
-          <div className="card">
-            <EmptyState icon="ri-search-line" title="Tidak ditemukan" description="Coba kata kunci lain" />
-          </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {tagihanTersaring.map(t => {
-              const status = statusTampilan(t)
-              return (
-                <div key={t.id} className="card" style={{ padding: '16px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-                    <div>
-                      <p style={{ fontSize: '15px', fontWeight: 600, color: 'var(--color-text)', margin: 0 }}>{t.user.nama}</p>
-                      <div style={{ display: 'flex', gap: '4px', marginTop: '4px', flexWrap: 'wrap' }}>
-                        <span className="badge badge-neutral" style={{ fontSize: '10px' }}>Blok {t.user.noRumah}</span>
-                        {t.pembayaran && <span className="badge badge-neutral" style={{ fontSize: '10px' }}>{t.pembayaran.metodeBayar}</span>}
-                      </div>
-                    </div>
-                    <StatusBadge status={status} />
-                  </div>
-                  <div className="divider" />
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '6px' }}>
-                    <div>
-                      <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', margin: 0 }}>{t.bulan} {t.tahun}</p>
-                      <p style={{ fontSize: '15px', fontWeight: 600, color: 'var(--color-text)', margin: '2px 0 0' }}>Rp {t.jumlah.toLocaleString('id-ID')}</p>
-                    </div>
-                    {status === 'Pending' && (
-                      <div style={{ display: 'flex', gap: '8px' }}>
-                        <button onClick={() => setCancelT(t)} className="btn btn-secondary btn-sm" style={{ color: 'var(--color-danger)' }}>
-                          <i className="ri-close-line" /> Tolak
-                        </button>
-                        <button onClick={() => setConfirmApprove(t)} className="btn btn-primary btn-sm">
-                          <i className="ri-check-line" /> Setujui
-                        </button>
-                      </div>
-                    )}
-                    {status === 'Lunas' && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ fontSize: '12px', color: 'var(--color-text-muted)', fontStyle: 'italic' }}>Valid ✓</span>
-                        <button onClick={() => setCancelT(t)} className="btn btn-ghost btn-sm" style={{ color: 'var(--color-danger)', padding: '4px 8px' }}>
-                          Batal
-                        </button>
-                      </div>
-                    )}
-                    {status === 'Belum Bayar' && <span style={{ fontSize: '12px', color: 'var(--color-text-muted)', fontStyle: 'italic' }}>Menunggu warga</span>}
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        )}
-      </div>
       <Modal isOpen={!!confirmApprove} onClose={() => setConfirmApprove(null)} title="Konfirmasi Persetujuan" size="sm">
         {confirmApprove && (
           <>
-            <div className="card-flat" style={{ marginBottom: '16px', textAlign: 'center' }}>
-              <p style={{ fontSize: '14px', color: 'var(--color-text-secondary)', margin: '0 0 8px' }}>
+            <div className="card-flat admin-modal-content">
+              <p className="admin-modal-text">
                 Setujui pembayaran dari <strong>{confirmApprove.user.nama}</strong> (Blok {confirmApprove.user.noRumah})?
               </p>
-              <p style={{ margin: 0, fontSize: '14px' }}>{confirmApprove.bulan} {confirmApprove.tahun}</p>
-              <p style={{ fontSize: '18px', fontWeight: 600, color: 'var(--color-text)', margin: '4px 0 0' }}>
+              <p className="admin-modal-period">{confirmApprove.bulan} {confirmApprove.tahun}</p>
+              <p className="admin-modal-amount">
                 Rp {confirmApprove.jumlah.toLocaleString('id-ID')}
               </p>
             </div>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <button onClick={() => setConfirmApprove(null)} className="btn btn-secondary btn-sm" style={{ flex: 1 }}>Batal</button>
-              <button onClick={() => handleSetujui(confirmApprove.pembayaran.id)} className="btn btn-primary btn-sm" style={{ flex: 1, justifyContent: 'center' }}>
+            <div className="admin-modal-actions">
+              <button onClick={() => setConfirmApprove(null)} className="btn btn-secondary btn-sm admin-modal-btn">Batal</button>
+              <button onClick={() => handleSetujui(confirmApprove.pembayaran.id)} className="btn btn-primary btn-sm admin-modal-btn admin-btn-center">
                 <i className="ri-check-line" /> Ya, Setujui
               </button>
             </div>
           </>
         )}
       </Modal>
+
       <Modal isOpen={!!cancelT} onClose={() => { setCancelT(null); setCancelReason('') }} title={cancelT?.pembayaran?.status === 'SUCCESS' ? 'Batalkan Persetujuan' : 'Tolak Pembayaran'} size="sm">
         {cancelT && (
           <form onSubmit={handleBatalPembayaran}>
-            <div className="card-flat" style={{ marginBottom: '16px' }}>
-              <p style={{ fontSize: '14px', color: 'var(--color-text-secondary)', margin: '0 0 8px', lineHeight: 1.5 }}>
+            <div className="card-flat admin-cancel-card">
+              <p className="admin-cancel-text">
                 Anda akan {cancelT.pembayaran.status === 'SUCCESS' ? 'membatalkan status LUNAS' : 'menolak pembayaran'} atas nama <strong>{cancelT.user.nama}</strong> untuk iuran {cancelT.bulan} {cancelT.tahun}.
               </p>
             </div>
-            <div style={{ marginBottom: '16px' }}>
+            <div className="admin-cancel-input-group">
               <label className="form-label">
-                Alasan Pembatalan {cancelT.pembayaran.status === 'SUCCESS' && <span style={{ color: 'var(--color-danger)' }}>*wajib</span>}
+                Alasan Pembatalan {cancelT.pembayaran.status === 'SUCCESS' && <span className="admin-req-asterisk">*wajib</span>}
               </label>
               <textarea 
                 value={cancelReason} 
@@ -422,26 +192,27 @@ export default function AdminDashboard() {
                 rows={3} 
                 required={cancelT.pembayaran.status === 'SUCCESS'}
               />
-              <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', margin: '4px 0 0' }}>Alasan ini akan dikirim ke warga sebagai notifikasi.</p>
+              <p className="admin-cancel-hint">Alasan ini akan dikirim ke warga sebagai notifikasi.</p>
             </div>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <button type="button" onClick={() => { setCancelT(null); setCancelReason('') }} className="btn btn-secondary" style={{ flex: 1 }}>Kembali</button>
-              <button type="submit" disabled={cancelLoading} className="btn btn-danger" style={{ flex: 1, justifyContent: 'center' }}>
+            <div className="admin-modal-actions">
+              <button type="button" onClick={() => { setCancelT(null); setCancelReason('') }} className="btn btn-secondary admin-modal-btn">Kembali</button>
+              <button type="submit" disabled={cancelLoading} className="btn btn-danger admin-modal-btn admin-btn-center">
                 {cancelLoading ? 'Memproses...' : 'Ya, Batalkan'}
               </button>
             </div>
           </form>
         )}
       </Modal>
+
       <Modal isOpen={!!buktiUrl} onClose={() => setBuktiUrl(null)} title="Bukti Transfer" size="md">
         {buktiUrl && (
-          <div style={{ textAlign: 'center' }}>
+          <div className="admin-bukti-container">
             <img 
               src={buktiUrl} 
               alt="Bukti Transfer" 
-              style={{ maxWidth: '100%', maxHeight: '70vh', objectFit: 'contain', borderRadius: '8px' }} 
+              className="admin-bukti-img" 
             />
-            <button onClick={() => setBuktiUrl(null)} className="btn btn-outline" style={{ marginTop: '16px', width: '100%', justifyContent: 'center' }}>
+            <button onClick={() => setBuktiUrl(null)} className="btn btn-outline admin-bukti-close">
               Tutup
             </button>
           </div>

@@ -3,11 +3,12 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
-export default function BottomNav({ onLogout, user }) {
+export default function BottomNav({ user }) {
   const pathname = usePathname()
 
   const tabs = [
     { href: '/warga', icon: 'ri-home-5', label: 'Beranda', exact: true },
+    { href: '/warga/pengumuman', icon: 'ri-notification-3', label: 'Info' },
     { href: '/warga/surat', icon: 'ri-file-text', label: 'Surat' },
   ]
 
@@ -28,15 +29,15 @@ export default function BottomNav({ onLogout, user }) {
         )
       })}
       {isAdmin && (
-        <Link href="/admin" className="bottom-nav-item">
-          <i className="ri-settings-4-line" />
+        <Link href="/admin" className={`bottom-nav-item${pathname.startsWith('/admin') ? ' active' : ''}`}>
+          <i className={`ri-settings-4-${pathname.startsWith('/admin') ? 'fill' : 'line'}`} />
           <span>Admin</span>
         </Link>
       )}
-      <button className="bottom-nav-item" onClick={onLogout}>
-        <i className="ri-logout-box-r-line" />
-        <span>Keluar</span>
-      </button>
+      <Link href="/warga/profil" className={`bottom-nav-item${pathname.startsWith('/warga/profil') ? ' active' : ''}`}>
+        <i className={`ri-user-3-${pathname.startsWith('/warga/profil') ? 'fill' : 'line'}`} />
+        <span>Profil</span>
+      </Link>
     </nav>
   )
 }

@@ -55,14 +55,6 @@ export default function Login() {
         return
       }
 
-      const userData = JSON.stringify({ ...hasil.user, loginAt: Date.now() })
-      try {
-        localStorage.setItem('tirtaAsriUser', userData)
-      } catch (err) {
-        console.warn('LocalStorage write blocked:', err)
-      }
-      document.cookie = `tirtaAsriUser=${encodeURIComponent(userData)}; path=/; max-age=86400; SameSite=Lax`
-
       if ('caches' in window) {
         try {
           const keys = await caches.keys()
@@ -202,16 +194,6 @@ export default function Login() {
               )}
             </button>
           </form>
-
-          <p className="animate-fade-up delay-4" style={{
-            textAlign: 'center', marginTop: '20px',
-            fontSize: '14px', color: 'var(--color-text-secondary)',
-          }}>
-            Belum punya akun?{' '}
-            <Link href="/register" style={{ color: 'var(--color-primary)', fontWeight: 600, textDecoration: 'none' }}>
-              Daftar di sini
-            </Link>
-          </p>
         </div>
       </div>
     </div>

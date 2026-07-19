@@ -3,8 +3,13 @@ import { prisma } from '@/lib/prisma'
 import { logAudit } from '@/lib/audit'
 import bcrypt from 'bcryptjs'
 
-export async function GET() {
+export async function GET(request) {
   try {
+    const userRole = request.headers.get('x-user-role')
+    if (userRole !== 'ADMIN_RT' && userRole !== 'ADMIN_IURAN') {
+      return NextResponse.json({ pesan: 'Forbidden' }, { status: 403 })
+    }
+
     const warga = await prisma.user.findMany({
       where: {
         role: { in: ['WARGA', 'ADMIN_RT', 'ADMIN_IURAN'] }
@@ -38,11 +43,10 @@ export async function POST(request) {
     const { nama, noRumah, pin } = await request.json()
     if (!nama || !noRumah || !pin) return NextResponse.json({ pesan: 'Data tidak lengkap' }, { status: 400 })
 
-    const emailSemu = `${noRumah.toLowerCase().replace(/\s+/g, '')}@warga.tirta-asri.local`
     const passwordHash = await bcrypt.hash(pin, 10)
 
     const userBaru = await prisma.user.create({
-      data: { nama, noRumah, email: emailSemu, password: passwordHash, role: 'WARGA' },
+      data: { nama, noRumah, password: passwordHash, role: 'WARGA' },
     })
     
     await logAudit('CREATE_WARGA', adminId, `Menambah warga baru: ${nama} (${noRumah})`)

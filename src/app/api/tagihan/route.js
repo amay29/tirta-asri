@@ -4,8 +4,16 @@ import { sendPushToUser } from '@/lib/pushNotification'
 
 export async function GET(request) {
   try {
+    const userRole = request.headers.get('x-user-role')
+    const userIdHeader = request.headers.get('x-user-id')
+
     const { searchParams } = new URL(request.url)
     const userId = searchParams.get('userId')
+
+    // Jika Warga, hanya bisa melihat tagihannya sendiri
+    if (userRole === 'WARGA' && userId !== userIdHeader) {
+      return NextResponse.json({ pesan: 'Forbidden' }, { status: 403 })
+    }
 
     const tagihan = await prisma.tagihan.findMany({
       where: userId ? { userId: parseInt(userId) } : undefined,
@@ -25,6 +33,11 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
+    const userRole = request.headers.get('x-user-role')
+    if (userRole !== 'ADMIN_RT' && userRole !== 'ADMIN_IURAN') {
+      return NextResponse.json({ pesan: 'Forbidden' }, { status: 403 })
+    }
+
     const body = await request.json()
     const { userId, bulan, tahun, jumlah, deadline } = body
 

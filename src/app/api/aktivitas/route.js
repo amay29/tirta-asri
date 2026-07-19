@@ -1,8 +1,13 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
-export async function GET() {
+export async function GET(request) {
   try {
+    const userRole = request.headers.get('x-user-role')
+    if (userRole !== 'ADMIN_RT') {
+      return NextResponse.json({ pesan: 'Forbidden' }, { status: 403 })
+    }
+
     const logs = await prisma.auditLog.findMany({
       orderBy: { createdAt: 'desc' },
       include: {

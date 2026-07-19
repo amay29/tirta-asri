@@ -3,55 +3,16 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 
-const SESSION_KEY = 'tirtaAsriUser'
-
-export function getSession() {
-  if (typeof window === 'undefined') return null
-
-  let raw = null
-  try {
-    raw = localStorage.getItem(SESSION_KEY)
-  } catch (err) {
-
-  }
-
-  if (!raw) {
-    try {
-      const match = document.cookie.match(new RegExp('(^| )' + SESSION_KEY + '=([^;]+)'))
-      if (match) raw = decodeURIComponent(match[2])
-    } catch (err) {}
-  }
-
-  if (!raw) return null
-
-  try {
-    return JSON.parse(raw)
-  } catch {
-    return null
-  }
-}
-
 export function useAuth(requiredRole = null) {
   const router = useRouter()
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const redirectedRef = useRef(false)
-
   const rolesRef = useRef(requiredRole)
   rolesRef.current = requiredRole
 
   const logout = useCallback(async () => {
     if (typeof window === 'undefined') return
-    try { localStorage.removeItem(SESSION_KEY) } catch {}
-    document.cookie = `${SESSION_KEY}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`
-    
-    if ('caches' in window) {
-      try {
-        const keys = await caches.keys()
-        await Promise.all(keys.map(k => caches.delete(k)))
-      } catch (err) {}
-    }
-
     try {
       await fetch('/api/auth/logout', { method: 'POST' })
     } catch (e) {}
@@ -60,31 +21,51 @@ export function useAuth(requiredRole = null) {
   }, [router])
 
   useEffect(() => {
+    let isMounted = true
 
-    if (typeof window === 'undefined') return
-    if (redirectedRef.current) return
-
-    const parsed = getSession()
-
-    if (!parsed) {
-      redirectedRef.current = true
-      router.replace('/login')
-      return
-    }
-
-    const required = rolesRef.current
-    if (required) {
-      const allowedRoles = Array.isArray(required) ? required : [required]
-      if (!allowedRoles.includes(parsed.role)) {
-        redirectedRef.current = true
-        router.replace('/login')
-        return
+    const checkAuth = async () => {
+      try {
+        const res = await fetch('/api/auth/me')
+        if (res.ok) {
+          const data = await res.json()
+          if (isMounted) {
+            setUser(data.user)
+            
+            const roles = rolesRef.current
+            if (roles) {
+              const allowedRoles = Array.isArray(roles) ? roles : [roles]
+              if (!allowedRoles.includes(data.user.role) && !redirectedRef.current) {
+                redirectedRef.current = true
+                router.replace('/login')
+              }
+            }
+          }
+        } else {
+          if (isMounted) {
+            setUser(null)
+            if (rolesRef.current && !redirectedRef.current) {
+              redirectedRef.current = true
+              router.replace('/login')
+            }
+          }
+        }
+      } catch (error) {
+        if (isMounted) {
+          setUser(null)
+          if (rolesRef.current && !redirectedRef.current) {
+            redirectedRef.current = true
+            router.replace('/login')
+          }
+        }
+      } finally {
+        if (isMounted) setLoading(false)
       }
     }
 
-    setUser(parsed)
-    setLoading(false)
-  }, [router]) // router dari next/navigation stabil (SPA)
+    checkAuth()
+
+    return () => { isMounted = false }
+  }, [router])
 
   return { user, loading, logout }
 }

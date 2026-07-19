@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { getSession } from '@/hooks/useAuth'
 
 function urlBase64ToUint8Array(base64String) {
   const padding = '='.repeat((4 - base64String.length % 4) % 4)
@@ -14,7 +13,7 @@ function urlBase64ToUint8Array(base64String) {
   return outputArray
 }
 
-export default function NotificationButton() {
+export default function NotificationButton({ user }) {
   const [permission, setPermission] = useState('default')
   const [subscribing, setSubscribing] = useState(false)
 
@@ -51,7 +50,6 @@ export default function NotificationButton() {
         ),
       })
 
-      const user = getSession()
       if (user) {
         await fetch('/api/notification/subscribe', {
           method: 'POST',
