@@ -44,40 +44,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Features Section */}
-      <section style={{ padding: '64px 24px', backgroundColor: 'var(--color-bg)' }}>
-        <div style={{ maxWidth: '600px', margin: '0 auto', textAlign: 'center', marginBottom: '40px' }}>
-          <h2 className="font-heading" style={{ fontSize: '28px', color: 'var(--color-dark)', marginBottom: '12px' }}>
-            Kemudahan untuk Warga
-          </h2>
-          <p style={{ color: 'var(--color-text-secondary)', fontSize: '15px' }}>
-            Platform digital yang dirancang khusus untuk mewujudkan transparansi dan kenyamanan warga.
-          </p>
-        </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px', maxWidth: '1000px', margin: '0 auto' }}>
-          <FeatureCard 
-            icon="ri-wallet-3-line" 
-            title="Pembayaran Digital" 
-            desc="Bayar iuran bulanan dengan mudah melalui QRIS atau transfer bank, langsung dari HP Anda." 
-          />
-          <FeatureCard 
-            icon="ri-bar-chart-box-line" 
-            title="Transparansi Kas" 
-            desc="Akses laporan uang masuk dan keluar secara real-time. Semuanya tercatat dengan jelas." 
-          />
-          <FeatureCard 
-            icon="ri-file-text-line" 
-            title="Surat Keterangan" 
-            desc="Ajukan pembuatan surat pengantar RT/RW secara online tanpa perlu antre ke rumah pengurus." 
-          />
-          <FeatureCard 
-            icon="ri-notification-3-line" 
-            title="Notifikasi Real-time" 
-            desc="Dapatkan pengumuman penting dan pengingat iuran langsung ke perangkat Anda." 
-          />
-        </div>
-      </section>
 
       {/* Footer / Tech Stack */}
       <footer style={{ backgroundColor: '#0f2d26', color: '#a8d4cc', padding: '48px 24px', textAlign: 'center' }}>
@@ -88,29 +55,9 @@ export default function Home() {
           Kabupaten Bandung, Jawa Barat 40288
         </p>
         <div style={{ borderTop: '1px solid rgba(168,212,204,0.2)', paddingTop: '24px', fontSize: '12px', opacity: 0.6 }}>
-          <p>Dibangun dengan Next.js App Router, Prisma ORM, dan PostgreSQL.</p>
           <p style={{ marginTop: '8px' }}>&copy; {new Date().getFullYear()} Tirta Asri Residence. All rights reserved.</p>
         </div>
       </footer>
-    </div>
-  )
-}
-
-function FeatureCard({ icon, title, desc }) {
-  return (
-    <div className="card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', padding: '32px 24px' }}>
-      <div style={{ 
-        width: '56px', height: '56px', borderRadius: '16px', 
-        backgroundColor: '#e0f0ea', color: '#1a6048', 
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        marginBottom: '20px'
-      }}>
-        <i className={icon} style={{ fontSize: '28px' }} />
-      </div>
-      <h4 className="font-heading" style={{ fontSize: '18px', marginBottom: '12px', color: 'var(--color-dark)' }}>{title}</h4>
-      <p style={{ color: 'var(--color-text-secondary)', fontSize: '14px', lineHeight: 1.6, margin: 0 }}>
-        {desc}
-      </p>
     </div>
   )
 }
